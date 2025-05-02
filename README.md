@@ -23,3 +23,5 @@ Can I complete 100 hours of code for a website or app? Probably not, but that's 
 - Create a volunteer activity
 - Log activity
 - Web App for phones and table
+
+HOW DO I CREATE A NODE JS SERVER

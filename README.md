@@ -14,7 +14,7 @@ Can I complete 100 hours of code for a website or app? Probably not, but that's 
 
 
 # VolunteerHub
--Find local volunteering opporunites and tack your volunteer hours. 
+- Find local volunteering opporunites and tack your volunteer hours. 
 
 ## Things to make
 - Server to login into check volunteer

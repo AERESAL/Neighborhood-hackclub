@@ -9,7 +9,39 @@
 </head>
 
 <body>
-    <div class="login-container">
-        <h1>Welcome to my website</h1>
-        <p>This is a simple HTML page.</p>
+    <div class="container">
+        <div class="form-box active" id="login-form">
+            <form action ="">
+                <h2>Login</h2>
+                    <input type="email" placeholder="Email" name="Email" required>
+                    <input type="password" placeholder="Password" name="Password" required>
+                    <button type="submit" class="btn">Login</button>
+                    <p>Don't have an account? <a href="#"onclick="showForm('register-form')">Register</a></p>
+                    <p></p>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="form-box" id="register-form">
+            <form action ="">
+                <h2>Register</h2>
+                    <input type="name" placeholder="Name" name="Name" required>
+                    <input type="email" placeholder="Email" name="Email" required>
+                    <input type="password" placeholder="Password" name="Password" required>
+                    <select name="Organization or Individual" id="Organization or Individual" required>
+                        <option value=""">--Select--</option>
+                        <option value="Organization">Organization</option>
+                        <option value="Individual">Individual</option>
+                    </select>
+                    <button type="submit" class="btn">Register</button>
+                    <p>Already have a account? <a href="#"onclick="showForm('login-form')">Login</a></p>
+                    <p></p>
+                </div>
+            </form>
+        </div>
     </div>
+    <script src="script.js"></script>
+</body>
+
+</HTML>

@@ -1,89 +1,15 @@
-\<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<HTML lang="en">    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
-        <form id="login-form" class="space-y-4">
-            <div>
-                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                <input type="email" id="email" name="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your email" required>
-                <p id="email-error" class="text-red-500 text-xs italic" style="display: none;"></p>
-            </div>
-            <div>
-                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your password" required>
-                <p id="password-error" class="text-red-500 text-xs italic" style="display: none;"></p>
-            </div>
-            <div class="flex items-center">
-                <input type="checkbox" id="remember-me" name="remember-me" class="mr-2">
-                <label for="remember-me" class="text-gray-700 text-sm">Remember Me</label>
-            </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Login</button>
-        </form>
-        <div class="mt-4 text-center">
-            <a href="#" class="text-blue-500 hover:text-blue-700 text-sm font-medium">Forgot Password?</a>
-            <span class="text-gray-500 text-sm"> | </span>
-            <a href="#" class="text-blue-500 hover:text-blue-700 text-sm font-medium">Register</a>
-        </div>
+
+<body>
+    <div class="login-container">
+        <h1>Welcome to my website</h1>
+        <p>This is a simple HTML page.</p>
     </div>
-
-    <script>
-        const loginForm = document.getElementById('login-form');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const emailError = document.getElementById('email-error');
-        const passwordError = document.getElementById('password-error');
-
-        loginForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-
-            let isEmailValid = true;
-            let isPasswordValid = true;
-
-            if (!emailInput.value.trim()) {
-                emailError.textContent = 'Email is required';
-                emailError.style.display = 'block';
-                isEmailValid = false;
-            } else if (!isValidEmail(emailInput.value.trim())) {
-                emailError.textContent = 'Invalid email format';
-                emailError.style.display = 'block';
-                isEmailValid = false;
-            } else {
-                emailError.style.display = 'none';
-            }
-
-            if (!passwordInput.value.trim()) {
-                passwordError.textContent = 'Password is required';
-                passwordError.style.display = 'block';
-                isPasswordValid = false;
-            } else {
-                passwordError.style.display = 'none';
-            }
-
-            if (isEmailValid && isPasswordValid) {
-                // Simulate login success (replace with actual authentication logic)
-                alert('Login successful!');
-                loginForm.reset();
-            }
-        });
-
-        function isValidEmail(email) {
-            // Basic email validation regex
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-    </script>
-</body>
-</html>

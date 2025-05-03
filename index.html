@@ -10,34 +10,33 @@
 
 <body>
     <div class="container">
+        <!-- Login Form -->
         <div class="form-box active" id="login-form">
-            <form action ="">
+            <form>
                 <h2>Login</h2>
-                    <input type="email" placeholder="Email" name="Email" required>
-                    <input type="password" placeholder="Password" name="Password" required>
-                    <button type="submit" class="btn">Login</button>
-                    <p>Don't have an account? <a href="#"onclick="showForm('register-form')">Register</a></p>
-                    <p></p>
-                </div>
+                <input type="email" placeholder="Email" name="Email" required>
+                <input type="password" placeholder="Password" name="Password" required>
+                <p class="error-message" style="color: red;"></p> <!-- Error message -->
+                <button type="submit" class="btn">Login</button>
+                <p>Don't have an account? <a href="#" onclick="showForm('register-form')">Register</a></p>
             </form>
         </div>
-
-
+    
+        <!-- Register Form -->
         <div class="form-box" id="register-form">
-            <form action ="">
+            <form>
                 <h2>Register</h2>
-                    <input type="name" placeholder="Name" name="Name" required>
-                    <input type="email" placeholder="Email" name="Email" required>
-                    <input type="password" placeholder="Password" name="Password" required>
-                    <select name="Organization or Individual" id="Organization or Individual" required>
-                        <option value=""">--Select--</option>
-                        <option value="Organization">Organization</option>
-                        <option value="Individual">Individual</option>
-                    </select>
-                    <button type="submit" class="btn">Register</button>
-                    <p>Already have a account? <a href="#"onclick="showForm('login-form')">Login</a></p>
-                    <p></p>
-                </div>
+                <input type="text" placeholder="Name" name="Name" required>
+                <input type="email" placeholder="Email" name="Email" required>
+                <input type="password" placeholder="Password" name="Password" required>
+                <p class="error-message" style="color: red;"></p> <!-- Error message -->
+                <select name="Organization or Individual" required>
+                    <option value="">--Select--</option>
+                    <option value="Organization">Organization</option>
+                    <option value="Individual">Individual</option>
+                </select>
+                <button type="submit" class="btn">Register</button>
+                <p>Already have an account? <a href="#" onclick="showForm('login-form')">Login</a></p>
             </form>
         </div>
     </div>

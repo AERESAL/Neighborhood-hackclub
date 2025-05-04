@@ -41,7 +41,15 @@
         </div>
     </div>
     <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Redirect to home.html if the user is already logged in
+                window.location.href = 'home.html';
+            }
+        });
+    </script>
 </body>
 
 </HTML>
-                                                                                                                                                             

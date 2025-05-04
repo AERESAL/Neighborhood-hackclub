@@ -1,74 +1,30 @@
 <!DOCTYPE html>
-<HTML lang="en">    
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>VolunteerHub - Choose Role</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="container">
-        <!-- Login Form -->
-        <div class="form-box active" id="login-form">
-            <form>
-                <h2>Login</h2>
-                <input type="email" placeholder="Email" name="Email" required>
-                <input type="password" placeholder="Password" name="Password" required>
-                <p class="error-message" style="color: red;"></p> <!-- Error message -->
-                <button type="submit" class="btn">Login</button>
-                <p>Don't have an account? <a href="#" onclick="showForm('register-form')">Register</a></p>
-            </form>
-        </div>
-    
-        <!-- Register Form -->
-        <div class="form-box" id="register-form">
-            <form>
-                <h2>Register</h2>
-                <input type="text" placeholder="Name" name="Name" required>
-                <input type="email" placeholder="Email" name="Email" required>
-                <input type="password" placeholder="Password" name="Password" required>
-                <p class="error-message" style="color: red;"></p> <!-- Error message -->
-                <select name="Organization or Individual" required>
-                    <option value="">--Select--</option>
-                    <option value="Organization">Organization</option>
-                    <option value="Individual">Individual</option>
-                </select>
-                <button type="submit" class="btn">Register</button>
-                <p>Already have an account? <a href="#" onclick="showForm('login-form')">Login</a></p>
-            </form>
+        <h1>Welcome to VolunteerHub</h1>
+        <p>Please select your role to continue:</p>
+        <div class="role-selection">
+            <button class="btn" onclick="redirectTo('organization-login.html')">Organization</button>
+            <button class="btn" onclick="redirectTo('individual-login.html')">Individual</button>
         </div>
     </div>
-    <script src="script.js"></script>
+
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                return; // Stay on the login page if no token
-            }
-
-            try {
-                const response = await fetch('http://localhost:5000/user', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Invalid token');
-                }
-
-                // Redirect to home.html if the token is valid
-                window.location.href = 'home.html';
-            } catch (error) {
-                console.error(error);
-                localStorage.removeItem('token'); // Clear invalid token
-            }
-        });
+        function redirectTo(page) {
+            window.location.href = page;
+        }
     </script>
 </body>
 
-</HTML>
+</html>
 
 

@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const multer = require('multer');
 
 const app = express();
 const PORT = 5000;
@@ -10,9 +11,26 @@ const PORT = 5000;
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
+const upload = multer({ dest: 'uploads/' });
 
 // Mock database (replace with a real database like MongoDB or MySQL)
-const users = [];
+const users = [
+    { name: 'John Doe', email: 'johndoe@example.com', password: 'Password123', role: 'Organization' }
+];
+
+// Middleware to verify the token
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+    jwt.verify(token, 'secretkey', (err, user) => {
+        if (err) return res.status(403).json({ message: 'Forbidden' });
+        req.user = user;
+        next();
+    });
+}
+
 // Default route for the root URL
 app.get('/', (req, res) => {
     console.log('Root route accessed');
@@ -59,25 +77,34 @@ app.post('/login', async (req, res) => {
 });
 
 // Route to get user details
-app.get('/users', (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ message: 'Unauthorized' });
+app.get('/user', authenticateToken, (req, res) => {
+    const user = users.find(u => u.email === req.user.email);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ name: user.name, role: user.role });
+});
+
+app.post('/settings', authenticateToken, upload.single('profilePicture'), (req, res) => {
+    const { name, email } = req.body;
+    const profilePicture = req.file;
+
+    const user = users.find(u => u.email === req.user.email);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
     }
 
-    try {
-        const decoded = jwt.verify(token, 'secretkey');
-        const user = users.find(user => user.email === decoded.email);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.status(200).json({ name: user.name, role: user.role });
-    } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+    // Update user details
+    user.name = name || user.name;
+    user.email = email || user.email;
+    if (profilePicture) {
+        user.profilePicture = profilePicture.path; // Save the file path
     }
+
+    res.json({ message: 'User details updated successfully' });
 });
 
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+

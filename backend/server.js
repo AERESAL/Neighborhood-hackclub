@@ -53,9 +53,28 @@ app.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Generate token
-    const token = jwt.sign({ email: user.email }, 'secretkey', { expiresIn: '1h' });
+    // Generate token with role
+    const token = jwt.sign({ email: user.email, role: user.role }, 'secretkey', { expiresIn: '1h' });
     res.status(200).json({ message: 'Login successful', token });
+});
+
+// Route to get user details
+app.get('/user', (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secretkey');
+        const user = users.find(user => user.email === decoded.email);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ name: user.name, role: user.role });
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid token' });
+    }
 });
 
 // Start the server

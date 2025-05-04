@@ -42,14 +42,33 @@
     </div>
     <script src="script.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const token = localStorage.getItem('token');
-            if (token) {
-                // Redirect to home.html if the user is already logged in
+            if (!token) {
+                return; // Stay on the login page if no token
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/user', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Invalid token');
+                }
+
+                // Redirect to home.html if the token is valid
                 window.location.href = 'home.html';
+            } catch (error) {
+                console.error(error);
+                localStorage.removeItem('token'); // Clear invalid token
             }
         });
     </script>
 </body>
 
 </HTML>
+
+

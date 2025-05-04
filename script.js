@@ -71,3 +71,6 @@ async function register(event) {
 document.querySelector('#login-form form').addEventListener('submit', login);
 document.querySelector('#register-form form').addEventListener('submit', register);
 
+
+
+1

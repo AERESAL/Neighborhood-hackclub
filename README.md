@@ -26,3 +26,35 @@ Sidebar on the left side to navigate between the following:
 - Print/ Export (Icon on bottom left)
 - Settings (Icon on botton left)
 Top right will have profile pop out
+
+
+
+## Root Directory
+
+└── VolunteerHub/
+    ├── Informational/
+    │   ├── index.html
+    │   ├── about-us.html
+    │   ├── style.css
+    │   └── script.js
+    └── App/
+        ├── Individual-organization.html (Selection page for organization/user)
+        ├── Individual/
+        │   ├── individual-login.html
+        │   ├── individual-home.html
+        │   ├── individual-settings.html
+        │   ├── individual-style.css
+        │   └── individual-script.js
+        └── Organization/
+            ├── Organization-login.html
+            ├── Organization-home.html
+            ├── Organization-Event-Manager.html
+            ├── Organization-settings.html
+            ├── organization-style.css
+            └── organization-script.js
+    ├── Shared/
+    │   ├── shared-style.css
+    │   ├── shared-script.js
+    │   └── data.json
+
+## How to Acess

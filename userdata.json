@@ -1,0 +1,62 @@
+{
+    "1": {
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "role": "Administrator",
+      "preferences": {
+        "theme": "dark"
+      },
+      "activities": [
+        {
+          "title": "Community Cleanup",
+          "place": "Central Park",
+          "start_date": "2024-05-01",
+          "end_date": "2024-05-05",
+          "supervisor": {
+            "name": "John Doe",
+            "email": "johndoe@example.com"
+          }
+        },
+        {
+          "title": "Food Bank Assistance",
+          "place": "Local Food Bank",
+          "start_date": "2024-06-10",
+          "end_date": "2024-06-15",
+          "supervisor": {
+            "name": "Jane Smith",
+            "email": "janesmith@example.com"
+          }
+        }
+      ]
+    },
+        "2": {
+          "name": "Sai",
+          "email": "sai@example.com",
+          "role": "User",
+          "preferences": {
+            "theme": "light"
+          },
+          "activities": [
+            {
+              "title": "Tutoring Program",
+              "place": "Community Center",
+              "start_date": "2024-07-01",
+              "end_date": "2024-08-01",
+              "supervisor": {
+                "name": "Alex Johnson",
+                "email": "alexjohnson@example.com"
+              }
+            },
+            {
+              "title": "Blood Donation Drive",
+              "place": "City Hospital",
+              "start_date": "2024-08-15",
+              "end_date": "2024-08-15",
+              "supervisor": {
+                "name": "Dr. Emily Carter",
+                "email": "emilycarter@example.com"
+              }
+            }
+          ]
+        }
+    }

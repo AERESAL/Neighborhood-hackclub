@@ -1,4 +1,14 @@
 [
-   { "id": 1, "username": "admin", "password": "1234", "name": "Admin User" },
-   { "id": 2, "username": "sai", "password": "abcd", "name": "Sai" }
- ]
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "1234",
+    "name": "Admin User"
+  },
+  {
+    "id": 2,
+    "username": "sai",
+    "password": "abcd",
+    "name": "Sai"
+  },
+]

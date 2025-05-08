@@ -1,0 +1,26 @@
+{
+  "name": "neighborhood-hackclub-1",
+  "version": "1.0.0",
+  "description": "Can I complete 100 hours of code for a website or app? Probably not, but that's fine!",
+  "main": "auth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AERESAL/Neighborhood-hackclub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AERESAL/Neighborhood-hackclub/issues"
+  },
+  "homepage": "https://github.com/AERESAL/Neighborhood-hackclub#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security"
+  }
+}

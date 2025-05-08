@@ -29,32 +29,11 @@ Top right will have profile pop out
 
 
 
-## Root Directory
+## use early version
+- run as a live server
 
-└── VolunteerHub/
-    ├── Informational/
-    │   ├── index.html
-    │   ├── about-us.html
-    │   ├── style.css
-    │   └── script.js
-    └── App/
-        ├── Individual-organization.html (Selection page for organization/user)
-        ├── Individual/
-        │   ├── individual-login.html
-        │   ├── individual-home.html
-        │   ├── individual-settings.html
-        │   ├── individual-style.css
-        │   └── individual-script.js
-        └── Organization/
-            ├── Organization-login.html
-            ├── Organization-home.html
-            ├── Organization-Event-Manager.html
-            ├── Organization-settings.html
-            ├── organization-style.css
-            └── organization-script.js
-    ├── Shared/
-    │   ├── shared-style.css
-    │   ├── shared-script.js
-    │   └── data.json
 
-## How to Acess
+
+# Updates
+- spent 15 hours on authenication with firebase/auth0
+- i might just create my own authication thing that makes it easier (trust it will be secure. )

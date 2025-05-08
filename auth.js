@@ -5,20 +5,26 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   const password = document.getElementById("password").value;
 
   try {
-    const response = await fetch("users.json");
+    const response = await fetch("http://localhost:3000/users");
     const users = await response.json();
-    
-    const validUser = users.find(user => user.username === username && user.password === password);
 
-    if (validUser) {
-      localStorage.setItem("userId", validUser.id);
-      localStorage.setItem("userName", validUser.name);
-      window.location.href = "dashboard.html";
+    const user = users.find(user => user.username === username);
+
+    if (user) {
+      const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
+      
+      if (passwordMatch) {
+        localStorage.setItem("userId", user.id);
+        localStorage.setItem("userName", user.username);
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("message").innerText = "Invalid password.";
+      }
     } else {
-      document.getElementById("message").innerText = "Invalid username or password.";
+      document.getElementById("message").innerText = "User not found.";
     }
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error checking login:", error);
   }
 });
 
@@ -53,3 +59,4 @@ async function loadUserData() {
     console.error("Error fetching user data:", error);
   }
 }
+

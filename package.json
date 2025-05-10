@@ -4,7 +4,8 @@
   "description": "Can I complete 100 hours of code for a website or app? Probably not, but that's fine!",
   "main": "auth.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server"
   },
   "repository": {
     "type": "git",

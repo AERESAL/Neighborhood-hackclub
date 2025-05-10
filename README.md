@@ -2,7 +2,7 @@
 Can I complete 100 hours of code for a website or app? Probably not, but that's fine!
 
 # VolunteerHub
--Find local volunteering opporunites, track your volunteer hours, and COMPETE AGANIST FRIENDS!
+- Find local volunteering opporunites, track your volunteer hours, and COMPETE AGANIST FRIENDS!
 
 ## Features
 - Server to log in to check the volunteer
@@ -16,6 +16,7 @@ Can I complete 100 hours of code for a website or app? Probably not, but that's 
 - Leaderboard system to compete against friends and global
 - Organizers able to add their events. 
 - Email sent to supervisor so they can sign an online form.
+- 
 
 ## Home Page
 Sidebar on the left side to navigate between the following:

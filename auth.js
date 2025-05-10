@@ -1,62 +1,81 @@
-document.getElementById("loginForm").addEventListener("submit", async function(event) {
-  event.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const signupForm = document.getElementById("signupForm");
+  const loginForm = document.getElementById("loginForm");
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  // **Signup Form Handling**
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  try {
-    const response = await fetch("http://localhost:3000/users");
-    const users = await response.json();
+      const userData = {
+        firstName: document.getElementById("firstName").value.trim(),
+        lastName: document.getElementById("lastName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value.trim(),
+        zipCode: document.getElementById("zipCode").value.trim(),
+      };
 
-    const user = users.find(user => user.username === username);
-
-    if (user) {
-      const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
-      
-      if (passwordMatch) {
-        localStorage.setItem("userId", user.id);
-        localStorage.setItem("userName", user.username);
-        window.location.href = "dashboard.html";
-      } else {
-        document.getElementById("message").innerText = "Invalid password.";
+      if (!userData.username || !userData.password || !userData.email) {
+        alert("Please fill in all required fields.");
+        return;
       }
-    } else {
-      document.getElementById("message").innerText = "User not found.";
-    }
-  } catch (error) {
-    console.error("Error checking login:", error);
+
+      try {
+        const response = await fetch("http://localhost:3000/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(`Signup Error: ${data.message}`);
+        } else {
+          alert("Signup successful! Redirecting...");
+          window.location.href = "dashboard.html";
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        alert("An unexpected error occurred. Please check the console.");
+      }
+    });
+  }
+
+  // **Login Form Handling**
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const rememberMe = document.getElementById("rememberMe").checked;
+
+      if (!username || !password) {
+        alert("Please enter your username and password.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, rememberMe }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(`Login Error: ${data.message}`);
+        } else {
+          alert("Login successful! Redirecting...");
+          window.location.href = "dashboard.html";
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("An unexpected error occurred. Please check the console.");
+      }
+    });
   }
 });
-
-async function loadUserData() {
-  const userId = localStorage.getItem("userId");
-  if (!userId) return;
-
-  try {
-    const response = await fetch("userData.json");
-    const userData = await response.json();
-
-    if (userData[userId]) {
-      document.getElementById("userName").innerText = userData[userId].name;
-      document.getElementById("userEmail").innerText = userData[userId].email;
-      document.getElementById("userRole").innerText = userData[userId].role;
-      document.getElementById("userTheme").innerText = userData[userId].preferences.theme;
-
-      // Dynamically update activities list
-      const activitiesList = document.getElementById("activitiesList");
-      activitiesList.innerHTML = "";
-
-      userData[userId].activities.forEach(activity => {
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `
-          <strong>${activity.title}</strong> - ${activity.place} <br>
-          <small>(${activity.start_date} to ${activity.end_date})</small><br>
-          Supervisor: ${activity.supervisor.name} (${activity.supervisor.email})<br><br>`;
-        activitiesList.appendChild(listItem);
-      });
-    }
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-  }
-}
-

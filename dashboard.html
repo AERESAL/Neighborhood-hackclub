@@ -5,33 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    h2, h3 {
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-      margin: auto;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    li {
-      background: #ddd;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 5px;
-    }
+    body { font-family: Arial, sans-serif; }
+    .container { max-width: 500px; padding: 20px; background: white; margin: auto; }
   </style>
 </head>
 <body>
@@ -39,7 +14,6 @@
     <h2>Welcome, <span id="userName"></span>!</h2>
     <p>Email: <span id="userEmail"></span></p>
     <p>Role: <span id="userRole"></span></p>
-    <p>Preferred Theme: <span id="userTheme"></span></p>
 
     <h3>Volunteer Activities:</h3>
     <ul id="activitiesList"></ul>
@@ -48,45 +22,40 @@
   </div>
 
   <script>
-    document.getElementById("userName").innerText = localStorage.getItem("userName");
+    async function verifyAccess() {
+      const response = await fetch("http://localhost:3000/auth-check", { credentials: "include" });
+      const result = await response.json();
 
-    async function loadUserData() {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return;
-
-      try {
-        const response = await fetch("userData.json");
-        const userData = await response.json();
-
-        if (userData[userId]) {
-          document.getElementById("userEmail").innerText = userData[userId].email;
-          document.getElementById("userRole").innerText = userData[userId].role;
-          document.getElementById("userTheme").innerText = userData[userId].preferences.theme;
-
-          // Load activities dynamically
-          const activitiesList = document.getElementById("activitiesList");
-          activitiesList.innerHTML = "";
-
-          userData[userId].activities.forEach(activity => {
-            const listItem = document.createElement("li");
-            listItem.innerHTML = `
-              <strong>${activity.title}</strong> - ${activity.place}<br>
-              <small>${activity.start_date} to ${activity.end_date}</small><br>
-              Supervisor: ${activity.supervisor.name} (${activity.supervisor.email})<br>`;
-            activitiesList.appendChild(listItem);
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+      if (!result.loggedIn) {
+        window.location.href = "index.html"; // Redirect if not logged in
       }
     }
 
-    function logout() {
-      localStorage.clear();
-      window.location.href = "index.html";
+    async function loadUserData() {
+      const response = await fetch(`http://localhost:3000/userData/${localStorage.getItem("userId")}`);
+      const userData = await response.json();
+
+      document.getElementById("userName").innerText = userData.name;
+      document.getElementById("userEmail").innerText = userData.email;
+      document.getElementById("userRole").innerText = userData.role;
+
+      const activitiesList = document.getElementById("activitiesList");
+      activitiesList.innerHTML = "";
+      userData.activities.forEach(activity => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `<strong>${activity.title}</strong> - ${activity.place} (${activity.start_date} - ${activity.end_date})`;
+        activitiesList.appendChild(listItem);
+      });
     }
 
+    function logout() {
+      fetch("http://localhost:3000/logout", { method: "POST", credentials: "include" })
+        .then(() => window.location.href = "index.html");
+    }
+
+    verifyAccess();
     loadUserData();
   </script>
+  <script src="app.js"></script>
 </body>
 </html>

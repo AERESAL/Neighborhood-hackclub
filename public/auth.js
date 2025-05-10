@@ -1,3 +1,5 @@
+const API_URL = "https://volunteerhub-qfkx.onrender.com"; // ✅ Update to Render-hosted API
+
 document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signupForm");
   const loginForm = document.getElementById("loginForm");
@@ -22,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/signup", {
+        const response = await fetch(`${API_URL}/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(userData),
@@ -38,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } catch (error) {
         console.error("Signup error:", error);
-        alert("An unexpected error occurred. Please check the console.");
+        alert("An unexpected error occurred.");
       }
     });
   }
@@ -58,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/login", {
+        const response = await fetch(`${API_URL}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password, rememberMe }),
@@ -74,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } catch (error) {
         console.error("Login error:", error);
-        alert("An unexpected error occurred. Please check the console.");
+        alert("An unexpected error occurred.");
       }
     });
   }

@@ -20,8 +20,11 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "fs": "^0.0.1-security"
+    "express-session": "^1.18.1",
+    "fs": "^0.0.1-security",
+    "uuid": "^11.1.0"
   }
 }

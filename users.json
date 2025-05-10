@@ -1,14 +1,10 @@
-[
-  {
-    "id": 1,
-    "username": "admin",
-    "password": "1234",
-    "name": "Admin User"
-  },
-  {
-    "id": 2,
-    "username": "sai",
-    "password": "abcd",
-    "name": "Sai"
-  },
-]
+{
+  "admin": {
+    "userID": "0a744972-fac4-4639-b1be-c8f8abaa6118",
+    "firstName": "Admin",
+    "lastName": "Johnson",
+    "email": "admin@example.com",
+    "zipCode": "68116",
+    "password": "$2b$10$/Cse/IUkWFFZwwm9Hm99V.Y6rURH6enw3ECW8TYj5E7eqk1Z0DqVu"
+  }
+}

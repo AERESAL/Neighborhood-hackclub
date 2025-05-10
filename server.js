@@ -2,111 +2,84 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
-const USERS_FILE = "users.json";
-const USER_DATA_FILE = "userData.json";
-const SALT_ROUNDS = 10;
-
-// **Get all users (hashed passwords)**
-app.get("/users", (req, res) => {
-  fs.readFile(USERS_FILE, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ error: "Error reading user file" });
-    res.json(JSON.parse(data));
-  });
-});
-
-// **Get specific user data by ID**
-app.get("/userData/:id", (req, res) => {
-  fs.readFile(USER_DATA_FILE, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ error: "Error reading user data file" });
-
-    const userData = JSON.parse(data);
-    const userId = req.params.id;
-    
-    if (!userData[userId]) return res.status(404).json({ error: "User not found" });
-
-    res.json(userData[userId]);
-  });
-});
-
-// **Register a new user (hash password & update JSON)**
-app.post("/register", async (req, res) => {
-  const { username, password, name } = req.body;
-
-  if (!username || !password || !name) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  fs.readFile(USERS_FILE, "utf-8", async (err, data) => {
-    if (err) return res.status(500).json({ error: "Error reading user file" });
-
-    const users = JSON.parse(data);
-    const existingUser = users.find(user => user.username === username);
-
-    if (existingUser) return res.status(400).json({ error: "Username already exists" });
-
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const newUser = { id: users.length + 1, username, hashedPassword, name };
-
-    users.push(newUser);
-    fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Error saving user data" });
-      res.json({ message: "User registered successfully!", user: newUser });
-    });
-  });
-});
-
-// **Login user (verify hashed password)**
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ error: "Missing username or password" });
-  }
-
-  fs.readFile(USERS_FILE, "utf-8", async (err, data) => {
-    if (err) return res.status(500).json({ error: "Error reading user file" });
-
-    const users = JSON.parse(data);
-    const user = users.find(user => user.username === username);
-
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
-    
-    if (passwordMatch) {
-      res.json({ message: "Login successful!", userId: user.id, name: user.name });
-    } else {
-      res.status(401).json({ error: "Invalid password" });
-    }
-  });
-});
-
-// **Update user data (modify activities, preferences, etc.)**
-app.post("/updateUserData/:id", (req, res) => {
-  const userId = req.params.id;
-  const newUserData = req.body;
-
-  fs.readFile(USER_DATA_FILE, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ error: "Error reading user data file" });
-
-    const userData = JSON.parse(data);
-    
-    if (!userData[userId]) return res.status(404).json({ error: "User not found" });
-
-    userData[userId] = { ...userData[userId], ...newUserData };
-
-    fs.writeFile(USER_DATA_FILE, JSON.stringify(userData, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Error updating user data" });
-      res.json({ message: "User data updated successfully!", userData: userData[userId] });
-    });
-  });
-});
-
-// **Start the server**
 const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+// ✅ Fix CORS issue: Allow `localhost` and `127.0.0.1`
+app.use(cors({
+  origin: ["http://127.0.0.1:5500", "http://localhost:5500"],
+  credentials: true,
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+app.use(express.json());
+app.use(cookieParser());
+
+const usersFile = "users.json";
+
+// ✅ Ensure `users.json` exists
+if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, JSON.stringify({}, null, 2));
+let users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+
+// **Sign-up Route**
+app.post("/signup", async (req, res) => {
+  console.log("Signup Request Received:", req.body);
+
+  try {
+    const { firstName, lastName, email, phoneNumber, username, password, zipCode } = req.body;
+
+    if (!firstName || !lastName || !email || !username || !password) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (users[username]) return res.status(400).json({ message: "Username already exists" });
+    if (Object.values(users).find(user => user.email === email)) return res.status(400).json({ message: "Email already registered" });
+
+    const userID = uuidv4();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    users[username] = { userID, firstName, lastName, email, phoneNumber, zipCode, password: hashedPassword };
+
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    res.status(201).json({ message: "User registered successfully", userID });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// **Login Route**
+app.post("/login", async (req, res) => {
+  console.log("Login request received:", req.body);
+
+  try {
+    const { username, password, rememberMe } = req.body;
+    const user = users[username];
+
+    if (!user) return res.status(401).json({ message: "User does not exist" });
+    if (!(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "Incorrect password" });
+
+    if (rememberMe) {
+      res.cookie("username", username, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true });
+    }
+
+    res.status(200).json({ message: "Login successful", userID: user.userID });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// **Logout Route**
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+// ✅ Start Server
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

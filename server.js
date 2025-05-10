@@ -19,7 +19,8 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-const usersFile = "users.json";
+const usersFile = "./users.json";
+const userDataFile = "./userdata.json";
 
 // ✅ Ensure JSON storage exists
 if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, JSON.stringify({}, null, 2));

@@ -1,16 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs"); // ✅ Using bcryptjs for compatibility
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 const PORT = 3000;
 
-// ✅ Fix CORS issue: Allow `localhost` and `127.0.0.1`
+// ✅ Fix CORS for Render/Vercel
 app.use(cors({
-  origin: ["http://127.0.0.1:5500", "http://localhost:5500", "https://volunteerhub-qfkx.onrender.com"],
+  origin: ["http://127.0.0.1:5500", "http://localhost:5500", "https://your-render-project.onrender.com"],
   credentials: true,
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
@@ -21,7 +21,7 @@ app.use(cookieParser());
 
 const usersFile = "users.json";
 
-// ✅ Ensure `users.json` exists
+// ✅ Ensure JSON storage exists
 if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, JSON.stringify({}, null, 2));
 let users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
 

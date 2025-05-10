@@ -11,7 +11,7 @@ const PORT = 3000;
 
 // ✅ Fix CORS settings to allow Render-hosted frontend
 app.use(cors({
-  origin: ["https://your-render-project.onrender.com"],
+  origin: ["https://volunteerhub-qfkx.onrender.com/"],
   credentials: true,
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]

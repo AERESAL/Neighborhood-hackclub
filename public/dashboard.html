@@ -1,65 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; }
-    .container { max-width: 500px; padding: 20px; background: white; margin: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerHub Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            width: 75vw;
+            height: 75vh;
+            position: relative;
+            margin: auto;
+            border: 2px solid gray;
+            background-color: rgba(200, 200, 200, 0.2);
+        }
+
+        .widget {
+            width: 25vw;
+            height: 25vh;
+            background: rgba(0, 0, 0, 0.7); /* Increase transparency */
+            color: white; /* Ensure text is visible on dark background */
+            text-align: center;
+            line-height: 25vh;
+            font-size: 1.2rem;
+            position: absolute;
+            border-radius: 10px;
+            cursor: grab;
+        }
+
+        .editing .widget {
+            cursor: move;
+        }
+
+        #widget1 {
+            top: 0;
+            left: 0;
+        }
+
+        #widget2 {
+            top: 0;
+            right: 0;
+        }
+
+        #widget3 {
+            bottom: 0;
+            left: 0;
+        }
+
+        #widget4 {
+            bottom: 0;
+            right: 0;
+        }
+
+        #backgroundVideo {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        header {
+            background-color: rgba(255, 255, 255, 0.75); /* 75% transparency */
+        }
+
+        aside {
+            background-color: rgba(255, 255, 255, 0.75); /* 75% transparency */
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h2>Welcome, <span id="userName"></span>!</h2>
-    <p>Email: <span id="userEmail"></span></p>
-    <p>Role: <span id="userRole"></span></p>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Background Video -->
+    <video autoplay muted loop id="backgroundVideo">
+        <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
+    </video>
 
-    <h3>Volunteer Activities:</h3>
-    <ul id="activitiesList"></ul>
+    <!-- Header -->
+    <header class="flex items-center justify-between bg-white shadow-md px-6 py-4">
+        <h1 class="text-xl font-bold text-gray-700">VolunteerHub</h1>
+        <div class="relative flex items-center gap-4">
+            <!-- Theme Switcher -->
+            <button id="themeSwitcher" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1.5M12 19.5V21M4.22 4.22l1.06 1.06M18.72 18.72l1.06 1.06M3 12h1.5M19.5 12H21M4.22 19.78l1.06-1.06M18.72 5.28l1.06-1.06M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+                </svg>
+            </button>
 
-    <button onclick="logout()">Logout</button>
-  </div>
+            <!-- Profile -->
+            <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
+            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md">
+                <ul class="py-2 text-sm text-gray-700">
+                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-200">Profile</a></li>
+                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-200">Settings</a></li>
+                    <li><button class="w-full text-left block px-4 py-2 text-red-600 hover:bg-gray-200">Log Out</button></li>
+                </ul>
+            </div>
+        </div>
+    </header>
 
-  <script>
-    async function verifyAccess() {
-      const response = await fetch("http://localhost:3000/auth-check", { credentials: "include" });
-      const result = await response.json();
+    <!-- Layout Wrapper -->
+    <div class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="w-64 h-[95vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed">
+            <nav class="mt-6 flex-1">
+                <ul class="space-y-2">
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Activities</a></li>
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Leaderboard</a></li>
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">My Hours</a></li>
+                </ul>
+            </nav>
 
-      if (!result.loggedIn) {
-        window.location.href = "index.html"; // Redirect if not logged in
-      }
-    }
+            <div class="flex items-center justify-center gap-4 mb-4 px-6">
+                <button class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="http://www.w3.org/2000/svg" fill="#e3e3e3" width="24px">
+                        <path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/>
+                    </svg>
+                </button>
+                <button class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="http://www.w3.org/2000/svg" fill="#e3e3e3" width="24px">
+                        <path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+        
 
-    async function loadUserData() {
-      const response = await fetch(`http://localhost:3000/userData/${localStorage.getItem("userId")}`);
-      const userData = await response.json();
+        <!-- Main Content with Movable Widgets -->
+        <main class="flex-1 p-6 ml-64 relative mt-[64px]">
+            <!-- Greeting Container -->
+            <div class="bg-black bg-opacity-50 text-white p-6 rounded-md shadow-md">
+                <h1 id="greeting" class="text-3xl font-bold"></h1>
+                <p id="currentDate" class="text-lg mt-2"></p>
+                <button id="editButton" class="px-4 py-2 bg-blue-600 text-white rounded-md">Enable Edit Mode</button>
+            </div>
 
-      document.getElementById("userName").innerText = userData.name;
-      document.getElementById("userEmail").innerText = userData.email;
-      document.getElementById("userRole").innerText = userData.role;
+            <!-- Movable Widgets -->
+        <!-- Movable Container -->
+        <div class="container" id="container">
+            <!-- Movable Widgets -->
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget1">Widget 1</div>
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget2">Widget 2</div>
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget3">Widget 3</div>
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget4">Widget 4</div>
+        </div>
+        </main>
+    </div>
 
-      const activitiesList = document.getElementById("activitiesList");
-      activitiesList.innerHTML = "";
-      userData.activities.forEach(activity => {
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `<strong>${activity.title}</strong> - ${activity.place} (${activity.start_date} - ${activity.end_date})`;
-        activitiesList.appendChild(listItem);
-      });
-    }
+    <script>
+        const userName = "Sai";
+        const greetings = [
+            `Hello, ${userName}!`,
+            `Welcome, ${userName}!`,
+            `Hi there, ${userName}!`,
+            `Good to see you, ${userName}!`,
+            `Hey, ${userName}!`
+        ];
+        document.getElementById("greeting").innerText = greetings[Math.floor(Math.random() * greetings.length)];
+        document.getElementById("currentDate").innerText = new Date().toDateString();
 
-    function logout() {
-      fetch("http://localhost:3000/logout", { method: "POST", credentials: "include" })
-        .then(() => window.location.href = "index.html");
-    }
+        function toggleMenu() {
+            const menu = document.getElementById("profileMenu");
+            menu.classList.toggle("hidden");
+        }
 
-    verifyAccess();
-    loadUserData();
-  </script>
-  <script src="app.js"></script>
+        let isEditing = false;
+        const editButton = document.getElementById("editButton");
+        const container = document.getElementById("container");
+
+        editButton.addEventListener("click", () => {
+            isEditing = !isEditing;
+            container.classList.toggle("editing", isEditing);
+            editButton.innerText = isEditing ? "Disable Edit Mode" : "Enable Edit Mode";
+        });
+
+        // Ensure the container is not moveable
+        container.style.position = "relative";
+
+        document.querySelectorAll('.widget').forEach(widget => {
+            widget.addEventListener('mousedown', (event) => {
+                if (!isEditing) return;
+
+                let offsetX = event.clientX - widget.offsetLeft;
+                let offsetY = event.clientY - widget.offsetTop;
+
+                function moveWidget(e) {
+                    let newLeft = e.clientX - offsetX;
+                    let newTop = e.clientY - offsetY;
+
+                    // Constrain movement within the container
+                    const containerRect = container.getBoundingClientRect();
+                    const widgetRect = widget.getBoundingClientRect();
+
+                    if (newLeft < 0) newLeft = 0;
+                    if (newTop < 0) newTop = 0;
+                    if (newLeft + widgetRect.width > containerRect.width) newLeft = containerRect.width - widgetRect.width;
+                    if (newTop + widgetRect.height > containerRect.height) newTop = containerRect.height - widgetRect.height;
+
+                    // Check for collisions with other widgets
+                    const widgets = document.querySelectorAll('.widget');
+                    let collision = false;
+
+                    widgets.forEach(otherWidget => {
+                        if (otherWidget === widget) return; // Skip the current widget
+
+                        const otherRect = otherWidget.getBoundingClientRect();
+
+                        if (
+                            newLeft < otherRect.right - containerRect.left &&
+                            newLeft + widgetRect.width > otherRect.left - containerRect.left &&
+                            newTop < otherRect.bottom - containerRect.top &&
+                            newTop + widgetRect.height > otherRect.top - containerRect.top
+                        ) {
+                            collision = true;
+                        }
+                    });
+
+                    if (!collision) {
+                        widget.style.left = `${newLeft}px`;
+                        widget.style.top = `${newTop}px`;
+                    }
+                }
+
+                function stopMove() {
+                    document.removeEventListener('mousemove', moveWidget);
+                    document.removeEventListener('mouseup', stopMove);
+                }
+
+                document.addEventListener('mousemove', moveWidget);
+                document.addEventListener('mouseup', stopMove);
+            });
+        });
+
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        themeSwitcher.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+
+            // Update header and sidebar themes dynamically
+            const header = document.querySelector('header');
+            const sidebar = document.querySelector('aside');
+            const backgroundVideo = document.getElementById('backgroundVideo');
+            const isDarkMode = document.body.classList.contains('dark');
+
+            if (isDarkMode) {
+                header.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
+                sidebar.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
+                backgroundVideo.src = 'https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4'; // Switch to dark mode video
+            } else {
+                header.classList.remove('dark:bg-gray-800', 'dark:text-gray-200');
+                sidebar.classList.remove('dark:bg-gray-800', 'dark:text-gray-200');
+                backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Switch to light mode video
+            }
+
+            // Save theme preference to localStorage
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        });
+
+        // Apply saved theme preference on page load
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+
+            // Ensure header and sidebar are updated on page load
+            const header = document.querySelector('header');
+            const sidebar = document.querySelector('aside');
+            const backgroundVideo = document.getElementById('backgroundVideo');
+            header.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
+            sidebar.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
+            backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Set dark mode video on load
+        }
+    </script>
 </body>
 </html>
 
 
 
-// theme idea: https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4
+

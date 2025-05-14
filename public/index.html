@@ -26,6 +26,21 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+        @media (max-width: 768px) {
+        .title-text {
+            font-size: 10vw; /* Scales dynamically with screen width */
+            width: 100%; /* Ensures it spans the screen */
+            padding: 10px; /* Adds breathing room */
+            text-align: center; /* Keeps it visually balanced */
+        }
+        .features-container {
+            display: flex;
+            flex-direction: column; /* Stacks features in a single column */
+            align-items: center; /* Keeps them visually centered */
+            gap: 20px; /* Creates spacing between cards */
+        }
+
+        }
         
         body {
             background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569);
@@ -122,6 +137,8 @@
         .card p {
             font-size: 14px;
             color: white;
+            position: relative;
+            z-index: 10;
         }
 
         .card:hover::after {
@@ -148,6 +165,10 @@
 
         .card:hover .icon-glow svg {
             filter: drop-shadow(0 0 12px rgba(232, 160, 255, 1));
+        }
+        #features {
+            position: relative;
+            z-index: 1; /* Makes sure it doesn't block elements */
         }
 
 
@@ -227,7 +248,7 @@
     <!-- Embedded Demo Video -->
     <div class="mt-6">
         <iframe class="w-[60vw] h-[60vh] max-w-4xl mx-auto aspect-video rounded-lg shadow-lg" 
-                src="asset/demo.mp4" frameborder="0" allowfullscreen>
+                src="assets/demo.mp4" frameborder="0" allowfullscreen>
         </iframe>
     </div>
 </section>
@@ -297,20 +318,6 @@
 
 
 
-
-
-<!-- 🔎 How It Works -->
-<section id="how-it-works" class="p-10 text-center fade-in">
-    <h2 class="text-3xl font-bold">How It Works</h2>
-    <p class="mt-4 text-lg">Sign up, log hours, and get verification in just a few clicks!</p>
-</section>
-
-<!-- 🚀 Get Started Section -->
-<section id="contact" class="p-10 bg-gray-800 text-center fade-in">
-    <h2 class="text-3xl font-bold">Get Started</h2>
-    <p class="mt-4 text-lg">Ready to streamline your volunteer tracking? Join now!</p>
-    <button onclick="window.location.href='signup.html'" class="mt-6 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-500">Sign Up</button>
-</section>
 
 <footer class="bg-gray-900 text-white text-center p-5 mt-10">&copy; 2025 VolunteerHub. All rights reserved.</footer>
 

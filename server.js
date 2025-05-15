@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceAccountKey.json");
+const serviceAccount = require("serviceAccountKey.json");
 const fs = require("fs");
 
 admin.initializeApp({

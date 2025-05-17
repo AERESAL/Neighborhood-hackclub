@@ -4,9 +4,20 @@ const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+
+// Load service account from environment variable and fail fast if missing
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  console.error("FATAL: GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable is not set.");
+  process.exit(1);
+}
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+} catch (e) {
+  console.error("FATAL: GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON.");
+  process.exit(1);
+}
 const admin = require("firebase-admin");
-const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-const fs = require("fs");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

@@ -71,13 +71,10 @@ window.addEventListener("DOMContentLoaded", () => {
   loadUserActivities();
 });
 
-// Add Activity Button Handler
+// Add Activity Button Handler (session-based)
 const addActivityBtn = document.getElementById("addActivityBtn");
 if (addActivityBtn) {
   addActivityBtn.addEventListener("click", async () => {
-    const userId = localStorage.getItem("userId");
-    const userName = localStorage.getItem("userName");
-    if (!userId || !userName) return alert("User not logged in");
     const title = prompt("Enter activity title:");
     const place = prompt("Enter activity place:");
     const start_date = prompt("Enter start date (YYYY-MM-DD):");
@@ -85,17 +82,19 @@ if (addActivityBtn) {
     const supervisorName = prompt("Enter supervisor name:");
     const supervisorEmail = prompt("Enter supervisor email:");
     try {
-      await addDoc(collection(db, "activities"), {
-        userId,
-        userName,
-        title,
-        place,
-        start_date,
-        end_date,
-        supervisorName,
-        supervisorEmail
+      const response = await fetch("/add-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, place, start_date, end_date, supervisorName, supervisorEmail })
       });
-      loadUserActivities();
+      const data = await response.json();
+      if (!response.ok) {
+        alert(`Error: ${data.message}`);
+      } else {
+        alert("Activity added successfully!");
+        // Optionally reload activities from userData
+        window.location.reload();
+      }
     } catch (error) {
       alert("Failed to add activity");
       console.error(error);

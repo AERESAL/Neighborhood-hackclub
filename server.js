@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+const session = require("express-session");
+const jwt = require("jsonwebtoken");
 
 // Load service account from environment variable and fail fast if missing
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
@@ -40,6 +42,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Add session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || "volunteerhub_secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }
+}));
 
 // Serve Homepage
 app.get("/", (req, res) => {
@@ -119,20 +129,60 @@ app.post("/login", async (req, res) => {
     if (!user) return res.status(401).json({ message: "User does not exist" });
     // Check hashed password
     if (!(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "Incorrect password" });
-    if (rememberMe) {
-      res.cookie("username", username, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true });
-    }
-    res.status(200).json({ message: "Login successful", userID: user.userID });
+    // Generate JWT token
+    const token = jwt.sign({ userID: user.userID, username }, process.env.JWT_SECRET || "volunteerhub_jwt_secret", { expiresIn: "7d" });
+    res.status(200).json({ message: "Login successful", userID: user.userID, username, token });
   } catch (error) {
     console.error("Login error", error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
+// Token validation endpoint
+app.get("/validate-session", (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).json({ valid: false, message: "Token missing" });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "volunteerhub_jwt_secret");
+    res.status(200).json({ valid: true, userID: decoded.userID, username: decoded.username });
+  } catch (error) {
+    res.status(401).json({ valid: false, message: "Invalid or expired token" });
+  }
+});
+
 // Logout Route
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
+  req.session.destroy();
   res.status(200).json({ message: "Logged out successfully" });
+});
+
+// Add Activity Route (session protected)
+app.post("/add-activity", async (req, res) => {
+  if (!req.session.userID || !req.session.username) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  try {
+    const { title, place, start_date, end_date, supervisorName, supervisorEmail } = req.body;
+    // Add activity to userData
+    const userDataRef = db.collection("userData").doc(req.session.userID);
+    const userDataDoc = await userDataRef.get();
+    if (!userDataDoc.exists) return res.status(404).json({ message: "User data not found" });
+    const userData = userDataDoc.data();
+    const newActivity = {
+      title,
+      place,
+      start_date,
+      end_date,
+      supervisor: { name: supervisorName, email: supervisorEmail }
+    };
+    const updatedActivities = userData.activities ? [...userData.activities, newActivity] : [newActivity];
+    await userDataRef.update({ activities: updatedActivities });
+    res.status(201).json({ message: "Activity added successfully" });
+  } catch (error) {
+    console.error("Add activity error", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // Start Server

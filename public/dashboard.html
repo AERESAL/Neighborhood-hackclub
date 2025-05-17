@@ -76,7 +76,7 @@
     </video>
 
     <!-- Header -->
-    <header class="flex items-center justify-between bg-white shadow-md px-6 py-4">
+    <header class="flex items-center justify-between bg-white shadow-md px-6 py-4 fixed top-0 left-0 w-full z-50">
         <h1 class="text-xl font-bold text-gray-700">VolunteerHub</h1>
         <div class="relative flex items-center gap-4">
             <!-- Theme Switcher -->
@@ -101,7 +101,7 @@
     <!-- Layout Wrapper -->
     <div class="flex flex-1">
         <!-- Sidebar -->
-        <aside class="w-64 h-[95vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed">
+        <aside class="w-64 h-[100vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed pt-24">
             <nav class="mt-6 flex-1">
                 <ul class="space-y-2">
                     <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Activities</a></li>
@@ -143,6 +143,18 @@
             <div class="widget bg-black bg-opacity-25 text-white" id="widget3">Widget 3</div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget4">Widget 4</div>
         </div>
+
+        <!-- Activities Section -->
+        <section id="activitiesSection" class="mt-12 bg-white bg-opacity-80 rounded-md shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Activities</h2>
+                <button id="addActivityBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Activity</button>
+            </div>
+            <ul id="activitiesList" class="space-y-4">
+                <!-- Activities will be dynamically inserted here -->
+            </ul>
+        </section>
+        <!-- End Activities Section -->
         </main>
     </div>
 
@@ -269,6 +281,7 @@
             backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Set dark mode video on load
         }
     </script>
+    <script type="module" src="/public/app.js"></script>
 </body>
 </html>
 

@@ -1,24 +1,9 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBLhZoEmreDGCPqMXOPqHeYYoMZUKQMeuI",
-  authDomain: "volunteerhub-9ae56.firebaseapp.com",
-  projectId: "volunteerhub-9ae56",
-  storageBucket: "volunteerhub-9ae56.firebasestorage.app",
-  messagingSenderId: "1073714143993",
-  appId: "1:1073714143993:web:a9136fea61872c16e3f828",
-  measurementId: "G-5GESVQMQGP"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-const API_URL = "https://volunteerhub-qfkx.onrender.com"; // ✅ Update to Render-hosted API
-
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://volunteerhub-qfkx.onrender.com";
+const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+http://127.0.0.1:5500/public/signup.html
 document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signupForm");
   const loginForm = document.getElementById("loginForm");
@@ -35,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         username: document.getElementById("username").value.trim(),
         password: document.getElementById("password").value.trim(),
         zipCode: document.getElementById("zipCode").value.trim(),
+        phoneNumber: document.getElementById("phoneNumber") ? document.getElementById("phoneNumber").value.trim() : ""
       };
 
       if (!userData.username || !userData.password || !userData.email) {

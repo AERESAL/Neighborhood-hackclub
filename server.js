@@ -5,7 +5,19 @@ const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const admin = require("firebase-admin");
-const serviceAccount = require("serviceAccountKey.json");
+const serviceAccount = {
+  "type": "service_account",
+  "project_id": "volunteerhub-9ae56",
+  "private_key_id": "2ca234f47a2195a70b5cbcf69cb10bcab036dc92",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDoJ1EM26AszRnA\n6hMxRZQJyfX4wTCIeewycxSIRlgJyOCFlmipDBExh1y47EB6iMdf7lSM+0jhfYPo\nNMhs5b+75T0IttVA4sYa4nOjziaQdwd9TaLW7UXYCUtaDdfBPaaZbDi811fX0hYg\nHeViHCe8CTQzGYMVvscPeMAXUIjZ4r42mXyATt1Y+/ZIr1oOZz/SVuFd3yJ/qa68\nLImPUzMPqESN5djPa/T5sWsb/exCX5kzU5MDpSbU40UKsGJSz1zny+tpcdrG5qx9\nYQO5TRUngHJKe5h/VZebtXvy0PZkg09dGA0yOQ9W0+KuJOy+wRZgFlaSQm+ekH1+\n5R58YaJjAgMBAAECggEADS+L00l3e96bs4ZYArjAo3GyI9KCjtiF9DOZxfJg4RAP\nbeb7biaTpMGFywcNfn2IUsg29dmhQRV09C+99oQcyMTzcNbu89mC26y4WWRwckzL\nGHCGwDhdJYZu84rNEgUOElwVjjxDmVbYZN3t1Q25AAgcdo6LZc/JKfV3dkY1D6hN\nOs5RiEzqUXfFYEnrDKTDVL/jq+TnQh/2R/KfNCXfoSHS0dTGLTe/Mb1zgl8wL/vu\np51BCkrbIGDWFAwyRCK5IjKJf8pCAkOuWch/G3TnYeX4GeUSyhnNL8zoBFE7Iq6O\nZ9TfyT7alwr8G6Lm+Px5F0wt82WIVH1Kj9vQlpL9wQKBgQD7OlpkEjrdlKvK6RIY\nCv+Ey35h3oztMscdP1OSSTnFHi2u62d/AktRTWadyXdaKwla0ffTSNEUYtDt7QSv\nc4b6aU0euJsZAhB8qw6i0hjJMcFl8uNQ42yBNg3Z/GEA1PFfBdY/PcxbiYNb7kLj\nI1EOw2ZWkvbYLxelwhNyqe7QQwKBgQDskDXm/Ba1HuHpk1XHQkEyJ23wJCfssiay\nDATVVpOt4T1svOhmXVQ8xsWL7i6jkiLfEVWm3WIPywuAET/in9nSyOK56nchAgtC\n0S+h2h0P6S6rJp2etfsnwWp7bwzNPgZ1gbG/x3K+K8sj4OTQvRsz/LNOltzuEPrG\nvXU7JLVTYQKBgEGpccCgBySs2+3P1vvTvA8QRLr9uOWyFNqvF3+vhdrgVV5Xhphq\nmBbq3Pw2kOxPPUWwhU6CxKrIXQUiosvcrRW7+f0ikN8LbBW5e7zQnsvPJlYoEoOs\nvUpUP3CPByd5gJCubN3goA34tg2MC41kSKZMKe5MwRmlzU90lzKr+ZATAoGBAJ4k\nDZSbYwazXWyK7OXmmbTQfQLy+KmXspyFwllnphOwJiLh6i48J8r1SiwwDoeUcrFS\nYkLJbfuGzepQHbf/CluJpV+JqResySBivQfiyljPlj4d83KczwgVmXxokVNHKoQ1\nLkE5MLCGkCcs+Wm9cUkAnlFkMs8HFM3060CdWoYhAoGBAOs6zZFTtgj0vr9uv0PI\nLxJ/8hEdSVFvU4YOAigUhZqo051lnBjHtksgTk0zrApEflioQpssI28ZrTxkJ/QE\nhxJd8JYyNInD7T7fJFkkmTR5qqKu8HFtcZF42Tg1D0HGxR2MT+Vd/SJqKcHhJYv5\nhRJ2GkHqONjVIgA5VcNWTotL\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@volunteerhub-9ae56.iam.gserviceaccount.com",
+  "client_id": "109459100300818990555",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40volunteerhub-9ae56.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+};
 const fs = require("fs");
 
 admin.initializeApp({
@@ -17,8 +29,6 @@ const db = admin.firestore();
 
 const app = express();
 const PORT = 3000;
-const usersFilePath = path.join(__dirname, "users.json");
-const userDataFilePath = path.join(__dirname, "userdata.json");
 
 // CORS Configuration
 app.use(cors({
@@ -37,34 +47,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Helper function to read users.json
-function readUsersFromFile() {
-  if (fs.existsSync(usersFilePath)) {
-    const data = fs.readFileSync(usersFilePath);
-    return JSON.parse(data);
-  }
-  return {};
-}
-
-// Helper function to write users.json
-function writeUsersToFile(users) {
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-}
-
-// Helper function to read userdata.json
-function readUserDataFromFile() {
-  if (fs.existsSync(userDataFilePath)) {
-    const data = fs.readFileSync(userDataFilePath);
-    return JSON.parse(data);
-  }
-  return {};
-}
-
-// Helper function to write userdata.json
-function writeUserDataToFile(userData) {
-  fs.writeFileSync(userDataFilePath, JSON.stringify(userData, null, 2));
-}
-
 // Signup Route
 app.post("/signup", async (req, res) => {
   try {
@@ -74,53 +56,52 @@ app.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    let userExists = false;
+    // Ensure phoneNumber is never undefined
+    const safePhoneNumber = typeof phoneNumber === "undefined" ? "" : phoneNumber;
 
-    try {
-      const userRef = db.collection("users").doc(username);
-      const userDoc = await userRef.get();
-      userExists = userDoc.exists;
-    } catch (error) {
-      console.error("Firestore error", error);
-      return res.status(500).json({ message: "Database error" });
+    // Check if username exists
+    const userRef = db.collection("users").doc(username);
+    const userDoc = await userRef.get();
+    if (userDoc.exists) {
+      return res.status(400).json({ message: "Username already exists" });
     }
 
-    if (userExists) return res.status(400).json({ message: "Username already exists" });
-
+    // Check if email exists
     const emailQuery = await db.collection("users").where("email", "==", email).get();
-    if (!emailQuery.empty) return res.status(400).json({ message: "Email already registered" });
+    if (!emailQuery.empty) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-    const userID = uuidv4(); // Generate a random user ID
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userID = uuidv4();
 
+    // Create user object
     const newUser = {
       userID,
       firstName,
       lastName,
       email,
-      phoneNumber,
+      phoneNumber: safePhoneNumber,
       zipCode,
       password: hashedPassword
     };
 
-    try {
-      await db.collection("users").doc(username).set(newUser);
+    // Add to 'users' collection
+    await db.collection("users").doc(username).set(newUser);
 
-      // Add user-specific data to Firestore
-      const userData = {
-        name: `${firstName} ${lastName}`,
-        email,
-        preferences: {},
-        activities: []
-      };
-      await db.collection("userData").doc(userID).set(userData);
-    } catch (error) {
-      console.error("Firestore error", error);
-      return res.status(500).json({ message: "Database error" });
-    }
+    // Add to 'userData' collection
+    const userData = {
+      name: `${firstName} ${lastName}`,
+      email,
+      preferences: {},
+      activities: []
+    };
+    await db.collection("userData").doc(userID).set(userData);
 
     res.status(201).json({ message: "User registered successfully", userID });
   } catch (error) {
+    console.error("Signup error", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -129,31 +110,22 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { username, password, rememberMe } = req.body;
-
     let user;
-
-    try {
-      const userRef = db.collection("users").doc(username);
-      const userDoc = await userRef.get();
-      if (userDoc.exists) {
-        user = userDoc.data();
-      }
-    } catch (error) {
-      console.error("Firestore error, falling back to users.json", error);
-      const users = readUsersFromFile();
-      user = users[username];
+    // Get user from 'users' collection
+    const userRef = db.collection("users").doc(username);
+    const userDoc = await userRef.get();
+    if (userDoc.exists) {
+      user = userDoc.data();
     }
-
     if (!user) return res.status(401).json({ message: "User does not exist" });
-
+    // Check hashed password
     if (!(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "Incorrect password" });
-
     if (rememberMe) {
       res.cookie("username", username, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true });
     }
-
     res.status(200).json({ message: "Login successful", userID: user.userID });
   } catch (error) {
+    console.error("Login error", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -166,3 +138,5 @@ app.post("/logout", (req, res) => {
 
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
+

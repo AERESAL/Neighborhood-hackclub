@@ -5,19 +5,7 @@ const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const admin = require("firebase-admin");
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "volunteerhub-9ae56",
-  "private_key_id": "2ca234f47a2195a70b5cbcf69cb10bcab036dc92",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDoJ1EM26AszRnA\n6hMxRZQJyfX4wTCIeewycxSIRlgJyOCFlmipDBExh1y47EB6iMdf7lSM+0jhfYPo\nNMhs5b+75T0IttVA4sYa4nOjziaQdwd9TaLW7UXYCUtaDdfBPaaZbDi811fX0hYg\nHeViHCe8CTQzGYMVvscPeMAXUIjZ4r42mXyATt1Y+/ZIr1oOZz/SVuFd3yJ/qa68\nLImPUzMPqESN5djPa/T5sWsb/exCX5kzU5MDpSbU40UKsGJSz1zny+tpcdrG5qx9\nYQO5TRUngHJKe5h/VZebtXvy0PZkg09dGA0yOQ9W0+KuJOy+wRZgFlaSQm+ekH1+\n5R58YaJjAgMBAAECggEADS+L00l3e96bs4ZYArjAo3GyI9KCjtiF9DOZxfJg4RAP\nbeb7biaTpMGFywcNfn2IUsg29dmhQRV09C+99oQcyMTzcNbu89mC26y4WWRwckzL\nGHCGwDhdJYZu84rNEgUOElwVjjxDmVbYZN3t1Q25AAgcdo6LZc/JKfV3dkY1D6hN\nOs5RiEzqUXfFYEnrDKTDVL/jq+TnQh/2R/KfNCXfoSHS0dTGLTe/Mb1zgl8wL/vu\np51BCkrbIGDWFAwyRCK5IjKJf8pCAkOuWch/G3TnYeX4GeUSyhnNL8zoBFE7Iq6O\nZ9TfyT7alwr8G6Lm+Px5F0wt82WIVH1Kj9vQlpL9wQKBgQD7OlpkEjrdlKvK6RIY\nCv+Ey35h3oztMscdP1OSSTnFHi2u62d/AktRTWadyXdaKwla0ffTSNEUYtDt7QSv\nc4b6aU0euJsZAhB8qw6i0hjJMcFl8uNQ42yBNg3Z/GEA1PFfBdY/PcxbiYNb7kLj\nI1EOw2ZWkvbYLxelwhNyqe7QQwKBgQDskDXm/Ba1HuHpk1XHQkEyJ23wJCfssiay\nDATVVpOt4T1svOhmXVQ8xsWL7i6jkiLfEVWm3WIPywuAET/in9nSyOK56nchAgtC\n0S+h2h0P6S6rJp2etfsnwWp7bwzNPgZ1gbG/x3K+K8sj4OTQvRsz/LNOltzuEPrG\nvXU7JLVTYQKBgEGpccCgBySs2+3P1vvTvA8QRLr9uOWyFNqvF3+vhdrgVV5Xhphq\nmBbq3Pw2kOxPPUWwhU6CxKrIXQUiosvcrRW7+f0ikN8LbBW5e7zQnsvPJlYoEoOs\nvUpUP3CPByd5gJCubN3goA34tg2MC41kSKZMKe5MwRmlzU90lzKr+ZATAoGBAJ4k\nDZSbYwazXWyK7OXmmbTQfQLy+KmXspyFwllnphOwJiLh6i48J8r1SiwwDoeUcrFS\nYkLJbfuGzepQHbf/CluJpV+JqResySBivQfiyljPlj4d83KczwgVmXxokVNHKoQ1\nLkE5MLCGkCcs+Wm9cUkAnlFkMs8HFM3060CdWoYhAoGBAOs6zZFTtgj0vr9uv0PI\nLxJ/8hEdSVFvU4YOAigUhZqo051lnBjHtksgTk0zrApEflioQpssI28ZrTxkJ/QE\nhxJd8JYyNInD7T7fJFkkmTR5qqKu8HFtcZF42Tg1D0HGxR2MT+Vd/SJqKcHhJYv5\nhRJ2GkHqONjVIgA5VcNWTotL\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-fbsvc@volunteerhub-9ae56.iam.gserviceaccount.com",
-  "client_id": "109459100300818990555",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40volunteerhub-9ae56.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-};
+const serviceAccount = require("./serviceAccountKey.json");
 const fs = require("fs");
 
 admin.initializeApp({

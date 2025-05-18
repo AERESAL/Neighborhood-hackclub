@@ -71,16 +71,29 @@ window.addEventListener("DOMContentLoaded", () => {
   loadUserActivities();
 });
 
-// Add Activity Button Handler (session-based)
+// Add Activity Form logic
 const addActivityBtn = document.getElementById("addActivityBtn");
-if (addActivityBtn) {
-  addActivityBtn.addEventListener("click", async () => {
-    const title = prompt("Enter activity title:");
-    const place = prompt("Enter activity place:");
-    const start_date = prompt("Enter start date (YYYY-MM-DD):");
-    const end_date = prompt("Enter end date (YYYY-MM-DD):");
-    const supervisorName = prompt("Enter supervisor name:");
-    const supervisorEmail = prompt("Enter supervisor email:");
+const addActivityForm = document.getElementById("addActivityForm");
+const cancelAddActivity = document.getElementById("cancelAddActivity");
+
+if (addActivityBtn && addActivityForm && cancelAddActivity) {
+  addActivityBtn.addEventListener("click", () => {
+    addActivityForm.classList.remove("hidden");
+    addActivityBtn.classList.add("hidden");
+  });
+  cancelAddActivity.addEventListener("click", () => {
+    addActivityForm.classList.add("hidden");
+    addActivityBtn.classList.remove("hidden");
+    addActivityForm.reset && addActivityForm.reset();
+  });
+  addActivityForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("activityTitle").value.trim();
+    const place = document.getElementById("activityPlace").value.trim();
+    const start_date = document.getElementById("activityStartDate").value;
+    const end_date = document.getElementById("activityEndDate").value;
+    const supervisorName = document.getElementById("supervisorName").value.trim();
+    const supervisorEmail = document.getElementById("supervisorEmail").value.trim();
     try {
       const response = await fetch("/add-activity", {
         method: "POST",
@@ -92,7 +105,9 @@ if (addActivityBtn) {
         alert(`Error: ${data.message}`);
       } else {
         alert("Activity added successfully!");
-        // Optionally reload activities from userData
+        addActivityForm.classList.add("hidden");
+        addActivityBtn.classList.remove("hidden");
+        addActivityForm.reset && addActivityForm.reset();
         window.location.reload();
       }
     } catch (error) {

@@ -150,6 +150,25 @@
                 <h2 class="text-2xl font-bold text-gray-800">Activities</h2>
                 <button id="addActivityBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Activity</button>
             </div>
+            <form id="addActivityForm" class="space-y-4 mb-4 hidden">
+                <div class="flex flex-wrap gap-4">
+                    <input type="text" id="activityTitle" placeholder="Title" class="border rounded px-3 py-2 flex-1" required>
+                    <input type="text" id="activityPlace" placeholder="Place" class="border rounded px-3 py-2 flex-1" required>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <input type="date" id="activityDate" class="border rounded px-3 py-2 flex-1" required>
+                    <input type="time" id="activityStartTime" class="border rounded px-3 py-2 flex-1" required>
+                    <input type="time" id="activityEndTime" class="border rounded px-3 py-2 flex-1" required>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <input type="text" id="supervisorName" placeholder="Supervisor Name" class="border rounded px-3 py-2 flex-1" required>
+                    <input type="email" id="supervisorEmail" placeholder="Supervisor Email" class="border rounded px-3 py-2 flex-1" required>
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Submit</button>
+                    <button type="button" id="cancelAddActivity" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+                </div>
+            </form>
             <ul id="activitiesList" class="space-y-4">
                 <!-- Activities will be dynamically inserted here -->
             </ul>
@@ -159,7 +178,7 @@
     </div>
 
     <script>
-        const userName = "Sai";
+        const userName = window.userName || "Please log in"; 
         const greetings = [
             `Hello, ${userName}!`,
             `Welcome, ${userName}!`,
@@ -280,10 +299,94 @@
             sidebar.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
             backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Set dark mode video on load
         }
+
+        // Activities Section Script
+        const addActivityBtn = document.getElementById('addActivityBtn');
+        const addActivityForm = document.getElementById('addActivityForm');
+        const activitiesList = document.getElementById('activitiesList');
+        const cancelAddActivity = document.getElementById('cancelAddActivity');
+
+        // Fetch and display activities from Firestore
+        async function loadActivities() {
+            activitiesList.innerHTML = '<li class="text-gray-500">Loading...</li>';
+            try {
+                const res = await fetch('/get-activities');
+                if (!res.ok) throw new Error('Failed to fetch activities');
+                const data = await res.json();
+                activitiesList.innerHTML = '';
+                if (data.activities && data.activities.length > 0) {
+                    data.activities.forEach(activity => {
+                        const activityItem = document.createElement('li');
+                        activityItem.className = 'p-4 bg-gray-100 rounded-md shadow-md';
+                        activityItem.innerHTML = `
+                            <h3 class="font-semibold text-gray-800">${activity.title}</h3>
+                            <p class="text-gray-600">${activity.place}</p>
+                            <p class="text-gray-500 text-sm font-bold">${activity.activityDate}</p>
+                            <p class="text-gray-500 text-sm">From: ${activity.startTime} To: ${activity.endTime}</p>
+                            <p class="text-gray-500 text-sm">Supervisor: ${activity.supervisorName} (${activity.supervisorEmail})</p>
+                        `;
+                        activitiesList.appendChild(activityItem);
+                    });
+                } else {
+                    activitiesList.innerHTML = '<li class="text-gray-500">No activities yet.</li>';
+                }
+            } catch (err) {
+                activitiesList.innerHTML = '<li class="text-red-500">Error loading activities.</li>';
+            }
+        }
+
+        addActivityBtn.addEventListener('click', () => {
+            addActivityForm.classList.toggle('hidden');
+        });
+
+        cancelAddActivity.addEventListener('click', () => {
+            addActivityForm.classList.add('hidden');
+        });
+
+        addActivityForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('activityTitle').value;
+            const place = document.getElementById('activityPlace').value;
+            const activityDate = document.getElementById('activityDate').value;
+            const startTime = document.getElementById('activityStartTime').value;
+            const endTime = document.getElementById('activityEndTime').value;
+            const supervisorName = document.getElementById('supervisorName').value;
+            const supervisorEmail = document.getElementById('supervisorEmail').value;
+
+            const activity = {
+                title,
+                place,
+                activityDate,
+                startTime,
+                endTime,
+                supervisorName,
+                supervisorEmail
+            };
+
+            try {
+                const res = await fetch('/add-activity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(activity)
+                });
+                if (!res.ok) throw new Error('Failed to add activity');
+                addActivityForm.reset();
+                addActivityForm.classList.add('hidden');
+                await loadActivities(); // Reload activities from Firestore
+            } catch (err) {
+                alert('Error adding activity.');
+            }
+        });
+
+        // Load activities on page load
+        loadActivities();
     </script>
     <script type="module" src="/public/app.js"></script>
 </body>
 </html>
+
+
 
 
 

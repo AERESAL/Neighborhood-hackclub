@@ -185,6 +185,26 @@ app.post("/add-activity", async (req, res) => {
   }
 });
 
+// Serve Dashboard with dynamic user name
+app.get("/dashboard.html", (req, res) => {
+  let userName = "";
+  if (req.session && req.session.username) {
+    userName = req.session.username;
+  } else if (req.query && req.query.username) {
+    userName = req.query.username;
+  } else {
+    userName = "Guest";
+  }
+  const fs = require("fs");
+  const dashboardPath = path.join(__dirname, "public", "dashboard.html");
+  fs.readFile(dashboardPath, "utf8", (err, html) => {
+    if (err) return res.status(500).send("Error loading dashboard");
+    // Replace the hardcoded userName in the script
+    const replaced = html.replace(/const userName = ".*?";/, `const userName = "${userName}";`);
+    res.send(replaced);
+  });
+});
+
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
 

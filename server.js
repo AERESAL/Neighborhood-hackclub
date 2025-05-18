@@ -157,31 +157,63 @@ app.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Add Activity Route (session protected)
-app.post("/add-activity", async (req, res) => {
-  if (!req.session.userID || !req.session.username) {
-    return res.status(401).json({ message: "Not authenticated" });
+// Middleware to extract user from JWT (for API endpoints)
+function authenticateJWT(req, res, next) {
+  let token = null;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
   }
+  if (!token) return res.status(401).json({ message: 'No token provided' });
   try {
-    const { title, place, start_date, end_date, supervisorName, supervisorEmail } = req.body;
-    // Add activity to userData
-    const userDataRef = db.collection("userData").doc(req.session.userID);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'volunteerhub_jwt_secret');
+    req.userID = decoded.userID;
+    req.username = decoded.username;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}
+
+// Get Activities Route (JWT protected)
+app.get('/get-activities', authenticateJWT, async (req, res) => {
+  try {
+    const userDataRef = db.collection('userData').doc(req.userID);
     const userDataDoc = await userDataRef.get();
-    if (!userDataDoc.exists) return res.status(404).json({ message: "User data not found" });
+    if (!userDataDoc.exists) return res.status(404).json({ activities: [] });
+    const userData = userDataDoc.data();
+    res.status(200).json({ activities: userData.activities || [] });
+  } catch (error) {
+    console.error('Get activities error', error);
+    res.status(500).json({ activities: [] });
+  }
+});
+
+// Add Activity Route (JWT protected)
+app.post('/add-activity', authenticateJWT, async (req, res) => {
+  try {
+    const { title, place, activityDate, startTime, endTime, supervisorName, supervisorEmail } = req.body;
+    // Add activity to userData
+    const userDataRef = db.collection('userData').doc(req.userID);
+    const userDataDoc = await userDataRef.get();
+    if (!userDataDoc.exists) return res.status(404).json({ message: 'User data not found' });
     const userData = userDataDoc.data();
     const newActivity = {
       title,
       place,
-      start_date,
-      end_date,
-      supervisor: { name: supervisorName, email: supervisorEmail }
+      activityDate,
+      startTime,
+      endTime,
+      supervisorName,
+      supervisorEmail
     };
     const updatedActivities = userData.activities ? [...userData.activities, newActivity] : [newActivity];
     await userDataRef.update({ activities: updatedActivities });
-    res.status(201).json({ message: "Activity added successfully" });
+    res.status(201).json({ message: 'Activity added successfully' });
   } catch (error) {
-    console.error("Add activity error", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Add activity error', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

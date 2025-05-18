@@ -178,7 +178,25 @@
     </div>
 
     <script>
-        const userName = window.userName || "Please log in"; 
+        // --- JWT decode helper ---
+        function parseJwt (token) {
+            try {
+                return JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                return null;
+            }
+        }
+        // Try to get token from localStorage
+        let token = localStorage.getItem('token');
+        let userName = "Please log in";
+        if (token) {
+            const decoded = parseJwt(token);
+            if (decoded && decoded.username) {
+                userName = decoded.username;
+            }
+        }
+        window.userName = userName;
+
         const greetings = [
             `Hello, ${userName}!`,
             `Welcome, ${userName}!`,

@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
+require('dotenv').config();
+console.log('EMAIL_USER:', process.env.EMAIL_USER, 'EMAIL_PASS:', process.env.EMAIL_PASS );
 
 // Load service account from environment variable or fallback to serviceAccountKey.json
 let serviceAccount;
@@ -300,6 +302,82 @@ app.get("/dashboard.html", (req, res) => {
     const replaced = html.replace(/const userName = ".*?";/, `const userName = "${userName}";`);
     res.send(replaced);
   });
+});
+
+// Get activities for a user from the 'activities' collection (JWT protected)
+app.get('/activities/:username', authenticateJWT, async (req, res) => {
+  try {
+    const { username } = req.params;
+    const doc = await db.collection('activities').doc(username).get();
+    if (!doc.exists) return res.status(200).json({ activities: [] });
+    const data = doc.data();
+    res.status(200).json({ activities: data.activities || [] });
+  } catch (error) {
+    console.error('Get activities error', error);
+    res.status(500).json({ activities: [] });
+  }
+});
+
+// Email sending dependencies
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+
+
+// Send Signature Request to Supervisor (JWT protected)
+app.post('/send-signature-request', authenticateJWT, async (req, res) => {
+  try {
+    const { name, date, start_time, end_time, location, supervisorName, supervisorEmail } = req.body;
+    if (!name || !date || !start_time || !end_time || !location || !supervisorName || !supervisorEmail) {
+      return res.status(400).json({ message: 'Missing required activity fields' });
+    }
+
+    // Get submitter's name and email from user profile
+    const userRef = db.collection('users').doc(req.username);
+    const userDoc = await userRef.get();
+    let submitterName = req.username;
+    let studentEmail = '';
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      submitterName = userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : req.username;
+      studentEmail = userData.email || '';
+    }
+
+    // Load and fill the email template
+    const templatePath = path.join(__dirname, 'email_template.html');
+    let emailHtml = fs.readFileSync(templatePath, 'utf8');
+    emailHtml = emailHtml
+      .replace(/{{supervisorName}}/g, supervisorName)
+      .replace(/{{submitterName}}/g, submitterName)
+      .replace(/{{name}}/g, name)
+      .replace(/{{date}}/g, date)
+      .replace(/{{start_time}}/g, start_time)
+      .replace(/{{end_time}}/g, end_time)
+      .replace(/{{location}}/g, location)
+      .replace(/{{studentEmail}}/g, studentEmail);
+
+    // Configure nodemailer transporter (use your SMTP or Gmail credentials)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, // set in your .env or environment
+        pass: process.env.EMAIL_PASS  // set in your .env or environment
+      }
+    });
+
+    // Email content
+    const mailOptions = {
+      from: `VolunteerHub <${process.env.EMAIL_USER}>`,
+      to: supervisorEmail,
+      subject: `Signature Request for Activity: ${name}`,
+      html: emailHtml
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: 'Signature request email sent to supervisor.' });
+  } catch (error) {
+    console.error('Send signature request error', error);
+    res.status(500).json({ message: 'Failed to send signature request email.' });
+  }
 });
 
 // Start Server

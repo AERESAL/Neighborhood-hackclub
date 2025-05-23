@@ -1,0 +1,75 @@
+<!-- VolunteerHub Signature Request Email Template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signature Request</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: #fff;
+      max-width: 500px;
+      margin: 40px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #0001;
+      padding: 32px 28px 24px 28px;
+      border-top: 6px solid #4f8cff;
+    }
+    h2 {
+      color: #4f8cff;
+      margin-top: 0;
+      font-weight: 700;
+    }
+    ul {
+      padding-left: 1.2em;
+      color: #333;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    .footer {
+      margin-top: 32px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
+    .cta {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 10px 24px;
+      background: #4f8cff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 2px 8px #4f8cff22;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Signature Request for Volunteer Activity</h2>
+    <p>Dear <b>{{supervisorName}}</b>,</p>
+    <p>The following activity by <b>{{submitterName}}</b> requires your signature/approval:</p>
+    <ul>
+      <li><strong>Activity Name:</strong> {{name}}</li>
+      <li><strong>Date:</strong> {{date}}</li>
+      <li><strong>Start Time:</strong> {{start_time}}</li>
+      <li><strong>End Time:</strong> {{end_time}}</li>
+      <li><strong>Location:</strong> {{location}}</li>
+    </ul>
+    <p>Please reply to this email to confirm your approval or contact the student directly.</p>
+    <a class="cta" href="mailto:{{studentEmail}}?subject=Signature%20for%20Volunteer%20Activity%20{{name}}">Reply & Approve</a>
+    <div class="footer">
+      Thank you,<br>
+      <b>VolunteerHub</b>
+    </div>
+  </div>
+</body>
+</html>

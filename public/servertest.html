@@ -43,6 +43,9 @@
       <input type="text" id="supervisorName" placeholder="Supervisor Name" required>
       <input type="email" id="supervisorEmail" placeholder="Supervisor Email" required>
       <button type="submit">Add Activity</button>
+      <label style="margin-left:10px;">
+        <input type="checkbox" id="getSignatureCheckbox"> Get a Signature (email supervisor)
+      </label>
     </form>
     <div id="activityStatus" style="margin-top:10px;"></div>
     <script>
@@ -59,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const activityForm = document.getElementById("activityForm");
   const activityStatus = document.getElementById("activityStatus");
   let lastToken = null;
+  let currentUsername = null;
 
   function showNotification(message, isError = false) {
     let notification = document.getElementById('notification');
@@ -118,8 +122,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function saveToken(token) {
     lastToken = token;
   }
+  function saveUsername(username) {
+    currentUsername = username;
+  }
 
-  // Patch login/signup to save token
+  // Patch login/signup to save token and username
   if (signupForm) {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -147,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showNotification('Signup successful!');
           saveToken(data.token);
+          saveUsername(userData.username);
           // Fetch and display user info
           fetch(`${API_URL}/users`, {
             method: 'GET',
@@ -163,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .catch(() => {
             userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
           });
+          await fetchAndRenderActivities();
         }
       } catch (error) {
         showNotification('An unexpected error occurred.', true);
@@ -191,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showNotification('Login successful!');
           saveToken(data.token);
+          saveUsername(username);
           // Fetch and display user info
           fetch(`${API_URL}/users`, {
             method: 'GET',
@@ -207,11 +217,33 @@ document.addEventListener("DOMContentLoaded", () => {
           .catch(() => {
             userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
           });
+          await fetchAndRenderActivities();
         }
       } catch (error) {
         showNotification('An unexpected error occurred.', true);
       }
     });
+  }
+
+  // Fetch activities from the activities collection for this user
+  async function fetchAndRenderActivities() {
+    let username = currentUsername;
+    if (!username) return; // Can't fetch activities without username
+    try {
+      const res = await fetch(`${API_URL}/activities/${username}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${lastToken}`,
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+      const data = await res.json();
+      renderActivitiesSection(data.activities || []);
+    } catch {
+      activityStatus.textContent = 'Could not load activities.';
+      activityStatus.style.color = '#e74c3c';
+    }
   }
 
   // Add Activity handler (uses /activities endpoint and fetches from activities collection)
@@ -238,6 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       try {
+        // Always add activity
         const response = await fetch(`${API_URL}/activities`, {
           method: 'POST',
           headers: {
@@ -251,30 +284,139 @@ document.addEventListener("DOMContentLoaded", () => {
           activityStatus.textContent = `Error: ${data.message || 'Could not add activity.'}`;
           activityStatus.style.color = '#e74c3c';
         } else {
-          activityStatus.textContent = 'Activity added successfully!';
-          activityStatus.style.color = '#27ae60';
+          // If get signature is checked, send email
+          const getSignature = document.getElementById('getSignatureCheckbox').checked;
+          if (getSignature) {
+            try {
+              const sigRes = await fetch(`${API_URL}/send-signature-request`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${lastToken}`
+                },
+                body: JSON.stringify(activity)
+              });
+              const sigData = await sigRes.json();
+              if (!sigRes.ok) {
+                activityStatus.textContent = `Activity added, but failed to send signature email: ${sigData.message}`;
+                activityStatus.style.color = '#e74c3c';
+              } else {
+                activityStatus.textContent = 'Activity added and signature request sent!';
+                activityStatus.style.color = '#27ae60';
+              }
+            } catch (err) {
+              activityStatus.textContent = 'Activity added, but error sending signature email.';
+              activityStatus.style.color = '#e74c3c';
+            }
+          } else {
+            activityStatus.textContent = 'Activity added successfully!';
+            activityStatus.style.color = '#27ae60';
+          }
           activityForm.reset();
-          // Fetch activities from the activities collection for this user
-          fetch(`${API_URL}/activities/${userInfoDiv.querySelector('li strong')?.nextSibling?.textContent?.trim() || ''}`, {
+          await fetchAndRenderActivities();
+        }
+      } catch (err) {
+        activityStatus.textContent = 'An unexpected error occurred.';
+        activityStatus.style.color = '#e74c3c';
+      }
+    });
+  }
+
+  // Also fetch activities after login/signup
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const rememberMe = document.getElementById('rememberMe').checked;
+      if (!username || !password) {
+        showNotification('Please enter your username and password.', true);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, rememberMe }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showNotification(`Login Error: ${data.message || 'Unknown error.'}`, true);
+        } else {
+          showNotification('Login successful!');
+          saveToken(data.token);
+          saveUsername(username);
+          // Fetch and display user info
+          fetch(`${API_URL}/users`, {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${lastToken}`,
+              'Authorization': `Bearer ${data.token}`,
               'Accept': 'application/json'
             },
             credentials: 'include'
           })
           .then(res => res.json())
-          .then(data => {
-            renderActivitiesSection(data.activities || []);
+          .then(userData => {
+            renderUserInfo(userData);
           })
           .catch(() => {
-            activityStatus.textContent = 'Could not load activities.';
-            activityStatus.style.color = '#e74c3c';
+            userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
           });
+          await fetchAndRenderActivities();
         }
-      } catch (err) {
-        activityStatus.textContent = 'An unexpected error occurred.';
-        activityStatus.style.color = '#e74c3c';
+      } catch (error) {
+        showNotification('An unexpected error occurred.', true);
+      }
+    });
+  }
+  if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userData = {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        username: document.getElementById('signupUsername').value.trim(),
+        password: document.getElementById('signupPassword').value.trim(),
+        zipCode: document.getElementById('zipCode').value.trim(),
+      };
+      if (!userData.username || !userData.password || !userData.email) {
+        showNotification('Please fill in all required fields.', true);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showNotification(`Signup Error: ${data.message || 'Unknown error.'}`, true);
+        } else {
+          showNotification('Signup successful!');
+          saveToken(data.token);
+          saveUsername(userData.username);
+          // Fetch and display user info
+          fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${data.token}`,
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
+          })
+          .then(res => res.json())
+          .then(userData => {
+            renderUserInfo(userData);
+          })
+          .catch(() => {
+            userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
+          });
+          await fetchAndRenderActivities();
+        }
+      } catch (error) {
+        showNotification('An unexpected error occurred.', true);
       }
     });
   }

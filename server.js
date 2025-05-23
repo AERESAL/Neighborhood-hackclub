@@ -7,17 +7,22 @@ const path = require("path");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
 
-// Load service account from environment variable and fail fast if missing
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-  console.error("FATAL: GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable is not set.");
-  process.exit(1);
-}
+// Load service account from environment variable or fallback to serviceAccountKey.json
 let serviceAccount;
-try {
-  serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-} catch (e) {
-  console.error("FATAL: GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON.");
-  process.exit(1);
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  try {
+    serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+  } catch (e) {
+    console.error("FATAL: GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON.");
+    process.exit(1);
+  }
+} else {
+  try {
+    serviceAccount = require(path.join(__dirname, "serviceAccountKey.json"));
+  } catch (e) {
+    console.error("FATAL: Could not load service account from environment variable or serviceAccountKey.json.");
+    process.exit(1);
+  }
 }
 const admin = require("firebase-admin");
 
@@ -36,7 +41,7 @@ app.use(cors({
   origin: ["http://127.0.0.1:5500", "http://localhost:5500", "https://volunteerhub-qfkx.onrender.com"],
   credentials: true,
   methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
@@ -214,6 +219,66 @@ app.post('/add-activity', authenticateJWT, async (req, res) => {
   } catch (error) {
     console.error('Add activity error', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add Activity to 'activities' collection, one document per user (JWT protected)
+app.post('/activities', authenticateJWT, async (req, res) => {
+  try {
+    const { name, date, start_time, end_time, location, supervisorName, supervisorEmail } = req.body;
+    if (!name || !date || !start_time || !end_time || !location || !supervisorName || !supervisorEmail) {
+      return res.status(400).json({ message: 'Missing required activity fields' });
+    }
+    // The document name is the username
+    const activitiesRef = db.collection('activities').doc(req.username);
+    const doc = await activitiesRef.get();
+    let activitiesArr = [];
+    if (doc.exists) {
+      const data = doc.data();
+      activitiesArr = data.activities || [];
+    }
+    const newActivity = {
+      name,
+      date,
+      start_time,
+      end_time,
+      location,
+      supervisorName,
+      supervisorEmail
+    };
+    activitiesArr.push(newActivity);
+    await activitiesRef.set({ activities: activitiesArr }, { merge: true });
+    res.status(201).json({ message: 'Activity added successfully' });
+  } catch (error) {
+    console.error('Add activity error', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get current user info (JWT protected)
+app.get('/users', authenticateJWT, async (req, res) => {
+  try {
+    const userRef = db.collection('users').doc(req.username);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).json({});
+    const userData = userDoc.data();
+    // Remove sensitive info
+    if (userData && userData.password) delete userData.password;
+
+    // Fetch activities created by this user from userData
+    const userDataRef = db.collection('userData').doc(req.userID);
+    const userDataDoc = await userDataRef.get();
+    let activities = [];
+    if (userDataDoc.exists) {
+      const userDataObj = userDataDoc.data();
+      activities = userDataObj.activities || [];
+    }
+    userData.activities = activities;
+
+    res.status(200).json(userData);
+  } catch (error) {
+    console.error('Get user info error', error);
+    res.status(500).json({});
   }
 });
 

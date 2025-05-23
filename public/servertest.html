@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Test</title>
+</head>
+<body>
+    <h1>Server Test</h1>
+    
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="loginUsername" placeholder="Username or Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <label>
+            <input type="checkbox" id="rememberMe"> Remember Me
+        </label>
+        <button type="submit">Login</button>
+    </form>
+
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+        <div class="name-container">
+            <input type="text" id="firstName" placeholder="First Name" required>
+            <input type="text" id="lastName" placeholder="Last Name" required>
+        </div>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="signupUsername" placeholder="Username" required>
+        <input type="password" id="signupPassword" placeholder="Password" required>
+        <input type="text" id="zipCode" placeholder="Zip Code" required>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <div id="userInfo" style="display:none; margin-top:30px; padding:20px; border-radius:8px; background:#f7f7f7; box-shadow:0 2px 8px #0001;"></div>
+
+    <h2>Add Activity</h2>
+    <form id="activityForm" style="margin-top:20px;">
+      <input type="text" id="activityName" placeholder="Activity Name" required>
+      <input type="date" id="activityDate" required>
+      <input type="time" id="activityStartTime" required>
+      <input type="time" id="activityEndTime" required>
+      <input type="text" id="activityWhere" placeholder="Where" required>
+      <input type="text" id="supervisorName" placeholder="Supervisor Name" required>
+      <input type="email" id="supervisorEmail" placeholder="Supervisor Email" required>
+      <button type="submit">Add Activity</button>
+    </form>
+    <div id="activityStatus" style="margin-top:10px;"></div>
+    <script>
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://volunteerhub-qfkx.onrender.com";
+const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const signupForm = document.getElementById("signupForm");
+  const loginForm = document.getElementById("loginForm");
+  const userInfoDiv = document.getElementById("userInfo");
+  const activityForm = document.getElementById("activityForm");
+  const activityStatus = document.getElementById("activityStatus");
+  let lastToken = null;
+
+  function showNotification(message, isError = false) {
+    let notification = document.getElementById('notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'notification';
+      notification.style.position = 'fixed';
+      notification.style.top = '20px';
+      notification.style.left = '50%';
+      notification.style.transform = 'translateX(-50%)';
+      notification.style.padding = '15px 30px';
+      notification.style.borderRadius = '8px';
+      notification.style.fontSize = '18px';
+      notification.style.zIndex = '9999';
+      notification.style.color = '#fff';
+      notification.style.background = isError ? '#e74c3c' : '#27ae60';
+      document.body.appendChild(notification);
+    }
+    notification.textContent = message;
+    notification.style.background = isError ? '#e74c3c' : '#27ae60';
+    notification.style.display = 'block';
+    setTimeout(() => { notification.style.display = 'none'; }, 3500);
+  }
+
+  function renderUserInfo(user) {
+    userInfoDiv.style.display = 'block';
+    if (!user || Object.keys(user).length === 0) {
+      userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>No user data found.</div>`;
+      return;
+    }
+    let html = `<h2>User Information</h2><ul style='text-align:left;'>`;
+    for (const [key, value] of Object.entries(user)) {
+      if (key !== 'activities') {
+        html += `<li><strong>${key}:</strong> ${typeof value === 'object' ? JSON.stringify(value) : value}</li>`;
+      }
+    }
+    html += '</ul>';
+    // Render activities if present
+    if (user.activities && Array.isArray(user.activities) && user.activities.length > 0) {
+      html += `<h3>Activities</h3>`;
+      user.activities.forEach((activity, idx) => {
+        html += `<div style='margin-left:2em;margin-bottom:1em;padding:0.5em 1em;background:#f0f0f0;border-radius:6px;'>`;
+        html += `<div><strong>Name:</strong> ${activity.name || activity.title || ''}</div>`;
+        html += `<div><strong>Date:</strong> ${activity.date || activity.activityDate || ''}</div>`;
+        html += `<div><strong>Start Time:</strong> ${activity.start_time || activity.startTime || ''}</div>`;
+        html += `<div><strong>Where:</strong> ${activity.where || activity.place || ''}</div>`;
+        html += `<div><strong>Supervisor:</strong> ${activity.supervisorName || ''} (${activity.supervisorEmail || ''})</div>`;
+        html += `</div>`;
+      });
+    } else {
+      html += `<div style='color:#888;'>No activities found.</div>`;
+    }
+    userInfoDiv.innerHTML = html;
+  }
+
+  // Save token after login/signup for activity submission
+  function saveToken(token) {
+    lastToken = token;
+  }
+
+  // Patch login/signup to save token
+  if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userData = {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        username: document.getElementById('signupUsername').value.trim(),
+        password: document.getElementById('signupPassword').value.trim(),
+        zipCode: document.getElementById('zipCode').value.trim(),
+      };
+      if (!userData.username || !userData.password || !userData.email) {
+        showNotification('Please fill in all required fields.', true);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showNotification(`Signup Error: ${data.message || 'Unknown error.'}`, true);
+        } else {
+          showNotification('Signup successful!');
+          saveToken(data.token);
+          // Fetch and display user info
+          fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${data.token}`,
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
+          })
+          .then(res => res.json())
+          .then(userData => {
+            renderUserInfo(userData);
+          })
+          .catch(() => {
+            userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
+          });
+        }
+      } catch (error) {
+        showNotification('An unexpected error occurred.', true);
+      }
+    });
+  }
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const rememberMe = document.getElementById('rememberMe').checked;
+      if (!username || !password) {
+        showNotification('Please enter your username and password.', true);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, rememberMe }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showNotification(`Login Error: ${data.message || 'Unknown error.'}`, true);
+        } else {
+          showNotification('Login successful!');
+          saveToken(data.token);
+          // Fetch and display user info
+          fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${data.token}`,
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
+          })
+          .then(res => res.json())
+          .then(userData => {
+            renderUserInfo(userData);
+          })
+          .catch(() => {
+            userInfoDiv.innerHTML = `<div style='color:#e74c3c;'>Could not load user data.</div>`;
+          });
+        }
+      } catch (error) {
+        showNotification('An unexpected error occurred.', true);
+      }
+    });
+  }
+
+  // Add Activity handler (uses /activities endpoint and fetches from activities collection)
+  if (activityForm) {
+    activityForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!lastToken) {
+        activityStatus.textContent = 'You must be logged in to add an activity.';
+        activityStatus.style.color = '#e74c3c';
+        return;
+      }
+      const activity = {
+        name: document.getElementById('activityName').value.trim(),
+        date: document.getElementById('activityDate').value,
+        start_time: document.getElementById('activityStartTime').value,
+        end_time: document.getElementById('activityEndTime').value,
+        location: document.getElementById('activityWhere').value.trim(),
+        supervisorName: document.getElementById('supervisorName').value.trim(),
+        supervisorEmail: document.getElementById('supervisorEmail').value.trim()
+      };
+      if (!activity.name || !activity.date || !activity.start_time || !activity.end_time || !activity.location || !activity.supervisorName || !activity.supervisorEmail) {
+        activityStatus.textContent = 'Please fill in all activity fields.';
+        activityStatus.style.color = '#e74c3c';
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/activities`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${lastToken}`
+          },
+          body: JSON.stringify(activity)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          activityStatus.textContent = `Error: ${data.message || 'Could not add activity.'}`;
+          activityStatus.style.color = '#e74c3c';
+        } else {
+          activityStatus.textContent = 'Activity added successfully!';
+          activityStatus.style.color = '#27ae60';
+          activityForm.reset();
+          // Fetch activities from the activities collection for this user
+          fetch(`${API_URL}/activities/${userInfoDiv.querySelector('li strong')?.nextSibling?.textContent?.trim() || ''}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${lastToken}`,
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
+          })
+          .then(res => res.json())
+          .then(data => {
+            renderActivitiesSection(data.activities || []);
+          })
+          .catch(() => {
+            activityStatus.textContent = 'Could not load activities.';
+            activityStatus.style.color = '#e74c3c';
+          });
+        }
+      } catch (err) {
+        activityStatus.textContent = 'An unexpected error occurred.';
+        activityStatus.style.color = '#e74c3c';
+      }
+    });
+  }
+
+  // Render activities from activities collection
+  function renderActivitiesSection(activities) {
+    let html = `<h3>Activities</h3>`;
+    if (activities.length > 0) {
+      activities.forEach((activity, idx) => {
+        html += `<div style='margin-left:2em;margin-bottom:1em;padding:0.5em 1em;background:#f0f0f0;border-radius:6px;'>`;
+        html += `<div><strong>Name:</strong> ${activity.name || ''}</div>`;
+        html += `<div><strong>Date:</strong> ${activity.date || ''}</div>`;
+        html += `<div><strong>Start Time:</strong> ${activity.start_time || ''}</div>`;
+        html += `<div><strong>End Time:</strong> ${activity.end_time || ''}</div>`;
+        html += `<div><strong>Location:</strong> ${activity.location || ''}</div>`;
+        html += `<div><strong>Supervisor:</strong> ${activity.supervisorName || ''} (${activity.supervisorEmail || ''})</div>`;
+        html += `</div>`;
+      });
+    } else {
+      html += `<div style='color:#888;'>No activities found.</div>`;
+    }
+    // Append or replace activities section below user info
+    let activitiesDiv = document.getElementById('activitiesSection');
+    if (!activitiesDiv) {
+      activitiesDiv = document.createElement('div');
+      activitiesDiv.id = 'activitiesSection';
+      userInfoDiv.parentNode.insertBefore(activitiesDiv, activityForm);
+    }
+    activitiesDiv.innerHTML = html;
+  }
+});
+    </script>
+</body>
+</html>

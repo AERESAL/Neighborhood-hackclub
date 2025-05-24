@@ -48,6 +48,9 @@
       </label>
     </form>
     <div id="activityStatus" style="margin-top:10px;"></div>
+    <button id="printActivitiesBtn" style="margin:20px 0; display:none;">Print Activities PDF</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
 const API_URL_LOCAL = "http://localhost:3000";
 const API_URL_PROD = "https://volunteerhub-qfkx.onrender.com";
@@ -433,12 +436,18 @@ document.addEventListener("DOMContentLoaded", () => {
         html += `<div><strong>End Time:</strong> ${activity.end_time || ''}</div>`;
         html += `<div><strong>Location:</strong> ${activity.location || ''}</div>`;
         html += `<div><strong>Supervisor:</strong> ${activity.supervisorName || ''} (${activity.supervisorEmail || ''})</div>`;
+        if (activity.signed && activity.signatureData) {
+          html += `<div><strong>Signature:</strong><br><img src="${activity.signatureData}" alt="Signature" style="height:40px;vertical-align:middle;"></div>`;
+        } else {
+          html += `<div><strong>Signature:</strong> Not signed</div>`;
+        }
         html += `</div>`;
       });
+      document.getElementById("printActivitiesBtn").style.display = "inline-block";
     } else {
       html += `<div style='color:#888;'>No activities found.</div>`;
+      document.getElementById("printActivitiesBtn").style.display = "none";
     }
-    // Append or replace activities section below user info
     let activitiesDiv = document.getElementById('activitiesSection');
     if (!activitiesDiv) {
       activitiesDiv = document.createElement('div');
@@ -447,7 +456,104 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     activitiesDiv.innerHTML = html;
   }
+
+  // PDF generation logic
+  document.getElementById("printActivitiesBtn").addEventListener("click", async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    // --- HEADER IMAGE ---
+    // Replace with your own image (must be base64 or data URL)
+    // Example: const logoImg = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
+    const logoImg = ''; // <-- Add your logo as a data URL here if you want
+    if (logoImg) {
+      doc.addImage(logoImg, "PNG", 10, 5, 40, 20);
+    }
+
+    let y = logoImg ? 30 : 15;
+
+    // --- TITLE ---
+    doc.setFontSize(22);
+    doc.text("VolunteerHub Volunteer Hours", 80, y);
+    y += 12;
+
+    // --- VOLUNTEER NAME ---
+    // Fetch user info for the name
+    let volunteerName = currentUsername;
+    try {
+      const userRes = await fetch(`${API_URL}/users`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${lastToken}` }
+      });
+      const userData = await userRes.json();
+      if (userData.firstName || userData.lastName) {
+        volunteerName = `${userData.firstName || ""} ${userData.lastName || ""}`.trim();
+      }
+    } catch {}
+    doc.setFontSize(14);
+    doc.text(`Volunteer: ${volunteerName}`, 14, y);
+    y += 8;
+
+    // --- FETCH ACTIVITIES ---
+    const res = await fetch(`${API_URL}/activities/${currentUsername}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${lastToken}`,
+        "Accept": "application/json"
+      }
+    });
+    const data = await res.json();
+    const activities = data.activities || [];
+
+    // --- TABLE DATA ---
+    const tableBody = activities.map(act => [
+      act.name || "",
+      act.date || "",
+      act.supervisorName || "",
+      act.location || act.where || "",
+      "" // Always set as empty string for signature column
+    ]);
+
+    // --- TABLE ---
+    doc.autoTable({
+      startY: y + 5,
+      head: [["Activity Name", "Date", "Supervisor", "Organization/Location", "Signature"]],
+      body: tableBody,
+      theme: "grid",
+      styles: { fontSize: 12, cellPadding: 3, minCellHeight: 15 },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 50 },
+        4: { cellWidth: 50 }
+      },
+      didDrawCell: function (data) {
+        // Draw signature image if present
+        if (data.column.index === 4) {
+          const act = activities[data.row.index];
+          if (act && act.signed && act.signatureData) {
+            doc.addImage(
+              act.signatureData,
+              "PNG",
+              data.cell.x + 2,
+              data.cell.y + 2,
+              40,
+              15
+            );
+          } else if (act && !act.signed) {
+            // Optionally, you could add a text like 'Not signed' here
+            doc.setFontSize(10);
+            doc.text("Not signed", data.cell.x + 5, data.cell.y + 12);
+          }
+        }
+      }
+    });
+
+    doc.save("volunteer_hours.pdf");
+  });
 });
     </script>
 </body>
 </html>
+

@@ -7,7 +7,6 @@ const path = require("path");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-console.log('EMAIL_USER:', process.env.EMAIL_USER, 'EMAIL_PASS:', process.env.EMAIL_PASS );
 
 // Load service account from environment variable or fallback to serviceAccountKey.json
 let serviceAccount;
@@ -331,6 +330,25 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
       return res.status(400).json({ message: 'Missing required activity fields' });
     }
 
+    // Generate a unique token for this signature request
+    const signatureToken = uuidv4();
+
+    // Store the token and signed:false with the activity in the user's activities
+    const activitiesRef = db.collection('activities').doc(req.username);
+    const doc = await activitiesRef.get();
+    let activitiesArr = [];
+    if (doc.exists) {
+      activitiesArr = doc.data().activities || [];
+    }
+    // Find the activity and add the token
+    const idx = activitiesArr.findIndex(
+      a => a.name === name && a.date === date && a.start_time === start_time && a.end_time === end_time && a.location === location
+    );
+    if (idx === -1) return res.status(404).json({ message: "Activity not found" });
+    activitiesArr[idx].signatureToken = signatureToken;
+    activitiesArr[idx].signed = false;
+    await activitiesRef.set({ activities: activitiesArr }, { merge: true });
+
     // Get submitter's name and email from user profile
     const userRef = db.collection('users').doc(req.username);
     const userDoc = await userRef.get();
@@ -345,6 +363,8 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
     // Load and fill the email template
     const templatePath = path.join(__dirname, 'email_template.html');
     let emailHtml = fs.readFileSync(templatePath, 'utf8');
+    // Construct the signature form URL
+    const signatureFormUrl = `http://localhost:3000/signature-form.html?token=${signatureToken}`;
     emailHtml = emailHtml
       .replace(/{{supervisorName}}/g, supervisorName)
       .replace(/{{submitterName}}/g, submitterName)
@@ -353,18 +373,18 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
       .replace(/{{start_time}}/g, start_time)
       .replace(/{{end_time}}/g, end_time)
       .replace(/{{location}}/g, location)
-      .replace(/{{studentEmail}}/g, studentEmail);
+      .replace(/{{studentEmail}}/g, studentEmail)
+      .replace(/{{signatureFormUrl}}/g, signatureFormUrl);
 
-    // Configure nodemailer transporter (use your SMTP or Gmail credentials)
+    // Configure nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // set in your .env or environment
-        pass: process.env.EMAIL_PASS  // set in your .env or environment
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
 
-    // Email content
     const mailOptions = {
       from: `VolunteerHub <${process.env.EMAIL_USER}>`,
       to: supervisorEmail,
@@ -377,6 +397,49 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
   } catch (error) {
     console.error('Send signature request error', error);
     res.status(500).json({ message: 'Failed to send signature request email.' });
+  }
+});
+
+// GET activity by signature token (for signature form)
+app.get('/activity-by-token/:token', async (req, res) => {
+  const { token } = req.params;
+  try {
+    const snapshot = await db.collection('activities').get();
+    let found = null;
+    snapshot.forEach(doc => {
+      const activities = doc.data().activities || [];
+      const match = activities.find(a => a.signatureToken === token);
+      if (match) found = { ...match, username: doc.id };
+    });
+    if (!found || found.signed) return res.status(404).send();
+    res.json(found);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Sign activity (for signature form)
+app.post('/sign-activity/:token', async (req, res) => {
+  const { token } = req.params;
+  const { signature } = req.body; // this is the data URL from the canvas
+  try {
+    const snapshot = await db.collection('activities').get();
+    let updated = false;
+    for (const doc of snapshot.docs) {
+      const activities = doc.data().activities || [];
+      const idx = activities.findIndex(a => a.signatureToken === token);
+      if (idx !== -1 && !activities[idx].signed) {
+        activities[idx].signed = true;
+        activities[idx].signatureData = signature; // store the image data URL
+        await db.collection('activities').doc(doc.id).update({ activities });
+        updated = true;
+        break;
+      }
+    }
+    if (!updated) return res.status(404).send();
+    res.json({ message: "Signed!" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 

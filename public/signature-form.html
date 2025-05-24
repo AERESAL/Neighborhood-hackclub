@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Volunteer Activity</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: #fff;
+      max-width: 400px;
+      margin: 40px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #0001;
+      padding: 32px 28px 24px 28px;
+      border-top: 6px solid #4f8cff;
+    }
+    h2 {
+      color: #4f8cff;
+      margin-top: 0;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    label {
+      font-weight: 600;
+    }
+    #signature-pad {
+      border: 2px solid #4f8cff;
+      border-radius: 6px;
+      width: 100%;
+      height: 120px;
+      margin-bottom: 16px;
+      background: #fff;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .pad-buttons {
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4f8cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sign Volunteer Activity</h2>
+    <div id="activityInfo"></div>
+    <form id="signatureForm">
+      <label for="signature-pad">Draw your signature below:</label>
+      <canvas id="signature-pad"></canvas>
+      <div class="pad-buttons">
+        <button type="button" id="clearBtn">Clear</button>
+      </div>
+      <button type="submit">Submit Signature</button>
+    </form>
+    <div id="status"></div>
+  </div>
+  <script>
+    // Simple signature pad logic
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false, lastX = 0, lastY = 0;
+
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function startDraw(e) {
+      drawing = true;
+      [lastX, lastY] = getXY(e);
+    }
+    function draw(e) {
+      if (!drawing) return;
+      const [x, y] = getXY(e);
+      ctx.strokeStyle = "#222";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      [lastX, lastY] = [x, y];
+    }
+    function endDraw() {
+      drawing = false;
+    }
+    function getXY(e) {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches) {
+        return [
+          e.touches[0].clientX - rect.left,
+          e.touches[0].clientY - rect.top
+        ];
+      } else {
+        return [
+          e.clientX - rect.left,
+          e.clientY - rect.top
+        ];
+      }
+    }
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseout', endDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', endDraw);
+
+    document.getElementById('clearBtn').onclick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // Attach the rest of your logic from signature.js
+  </script>
+  <script src="signature.js"></script>
+</body>
+</html>

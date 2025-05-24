@@ -364,7 +364,7 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
     const templatePath = path.join(__dirname, 'email_template.html');
     let emailHtml = fs.readFileSync(templatePath, 'utf8');
     // Construct the signature form URL
-    const signatureFormUrl = `http://localhost:3000/signature-form.html?token=${signatureToken}`;
+    const signatureFormUrl = `https://volunteerhub-qfkx.onrender.com/signature-form.html?token=${signatureToken}`;
     emailHtml = emailHtml
       .replace(/{{supervisorName}}/g, supervisorName)
       .replace(/{{submitterName}}/g, submitterName)

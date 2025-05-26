@@ -39,7 +39,12 @@ const PORT = 3000;
 
 // CORS Configuration
 app.use(cors({
-  origin: ["http://127.0.0.1:5500", "http://localhost:5500", "https://volunteerhub-qfkx.onrender.com"],
+  origin: [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://volunteerhub-qfkx.onrender.com",
+    "https://neighborhood-liard.vercel.app"
+  ],
   credentials: true,
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"]

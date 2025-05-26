@@ -42,7 +42,6 @@ app.use(cors({
   origin: [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
-    "https://volunteerhub-qfkx.onrender.com",
     "https://neighborhood-liard.vercel.app"
   ],
   credentials: true,
@@ -369,7 +368,7 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
     const templatePath = path.join(__dirname, 'email_template.html');
     let emailHtml = fs.readFileSync(templatePath, 'utf8');
     // Construct the signature form URL
-    const signatureFormUrl = `https://volunteerhub-qfkx.onrender.com/signature-form.html?token=${signatureToken}`;
+    const signatureFormUrl = `https://neighborhood-liard.vercel.app/signature-form.html?token=${signatureToken}`;
     emailHtml = emailHtml
       .replace(/{{supervisorName}}/g, supervisorName)
       .replace(/{{submitterName}}/g, submitterName)

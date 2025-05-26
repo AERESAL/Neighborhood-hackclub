@@ -67,9 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password, rememberMe }),
         });
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonErr) {
+          // If not JSON, likely a 404 or HTML error page
+          alert("Login failed: Server error or invalid response.");
+          return;
+        }
         if (!response.ok) {
-          alert(`Login Error: ${data.message}`);
+          alert(`Login Error: ${data.message || 'Server error.'}`);
         } else {
           // Save token and username for dashboard use
           lastToken = data.token;

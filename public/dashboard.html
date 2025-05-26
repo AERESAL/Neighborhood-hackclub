@@ -165,14 +165,18 @@
                     <input type="text" id="supervisorName" placeholder="Supervisor Name" class="border rounded px-3 py-2 flex-1" required>
                     <input type="email" id="supervisorEmail" placeholder="Supervisor Email" class="border rounded px-3 py-2 flex-1" required>
                 </div>
+                <div class="flex items-center mb-2">
+                    <input type="checkbox" id="getSignatureCheckbox" class="mr-2">
+                    <label for="getSignatureCheckbox" class="text-gray-700">Get a Signature (email supervisor)</label>
+                </div>
                 <div class="flex gap-4">
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Submit</button>
                     <button type="button" id="cancelAddActivity" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
                 </div>
             </form>
-            <ul id="activitiesList" class="space-y-4">
-                <!-- Activities will be dynamically inserted here -->
-            </ul>
+            <div id="activityStatus" class="mb-4"></div>
+            <div id="activitiesList"></div>
+            <button id="printActivitiesBtn" style="margin:20px 0; display:none;" class="px-4 py-2 bg-purple-600 text-white rounded-md">Print Activities PDF</button>
         </section>
         <!-- End Activities Section -->
         </main>
@@ -325,6 +329,182 @@
         const activitiesList = document.getElementById('activitiesList');
         const cancelAddActivity = document.getElementById('cancelAddActivity');
 
+        // --- Activities Section Logic (from servertest.html, adapted) ---
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://volunteerhub-qfkx.onrender.com";
+const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+
+let lastToken = localStorage.getItem('token');
+let currentUsername = window.userName;
+
+async function fetchAndRenderActivities() {
+  if (!currentUsername || !lastToken) return;
+  const activitiesList = document.getElementById('activitiesList');
+  activitiesList.innerHTML = '<div class="text-gray-500">Loading...</div>';
+  try {
+    const res = await fetch(`${API_URL}/activities/${currentUsername}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${lastToken}`,
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    const data = await res.json();
+    const activities = data.activities || [];
+    renderActivitiesSection(activities);
+  } catch {
+    activitiesList.innerHTML = '<div class="text-red-500">Could not load activities.</div>';
+  }
+}
+
+function renderActivitiesSection(activities) {
+  const activitiesList = document.getElementById('activitiesList');
+  let html = '';
+  if (activities.length > 0) {
+    activities.forEach((activity, idx) => {
+      html += `<div class='mb-4 p-4 bg-gray-100 rounded-md shadow-md'>`;
+      html += `<div><strong>Name:</strong> ${activity.name || activity.title || ''}</div>`;
+      html += `<div><strong>Date:</strong> ${activity.date || activity.activityDate || ''}</div>`;
+      html += `<div><strong>Start Time:</strong> ${activity.start_time || activity.startTime || ''}</div>`;
+      html += `<div><strong>End Time:</strong> ${activity.end_time || activity.endTime || ''}</div>`;
+      html += `<div><strong>Location:</strong> ${activity.location || activity.place || ''}</div>`;
+      html += `<div><strong>Supervisor:</strong> ${activity.supervisorName || ''} (${activity.supervisorEmail || ''})</div>`;
+      if (activity.signed && activity.signatureData) {
+        html += `<div><strong>Signature:</strong><br><img src="${activity.signatureData}" alt="Signature" style="height:40px;vertical-align:middle;"></div>`;
+      } else {
+        html += `<div><strong>Signature:</strong> Not signed</div>`;
+        html += `<button class="get-signature-btn px-3 py-1 bg-blue-500 text-white rounded mt-2" data-idx="${idx}">Get Signature</button>`;
+      }
+      html += `</div>`;
+    });
+    document.getElementById("printActivitiesBtn").style.display = "inline-block";
+  } else {
+    html += `<div class='text-gray-500'>No activities found.</div>`;
+    document.getElementById("printActivitiesBtn").style.display = "none";
+  }
+  activitiesList.innerHTML = html;
+
+  // Add event listeners for Get Signature buttons
+  document.querySelectorAll('.get-signature-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const activity = activities[idx];
+      const activityStatus = document.getElementById('activityStatus');
+      activityStatus.textContent = 'Sending signature request...';
+      activityStatus.style.color = '#333';
+      try {
+        const res = await fetch(`${API_URL}/send-signature-request`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${lastToken}`
+          },
+          body: JSON.stringify({
+            name: activity.name || activity.title || '',
+            date: activity.date || activity.activityDate || '',
+            start_time: activity.start_time || activity.startTime || '',
+            end_time: activity.end_time || activity.endTime || '',
+            location: activity.location || activity.place || '',
+            supervisorName: activity.supervisorName || '',
+            supervisorEmail: activity.supervisorEmail || ''
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          activityStatus.textContent = `Failed to send signature request: ${data.message || 'Unknown error.'}`;
+          activityStatus.style.color = '#e74c3c';
+        } else {
+          activityStatus.textContent = 'Signature request sent to supervisor!';
+          activityStatus.style.color = '#27ae60';
+          await fetchAndRenderActivities();
+        }
+      } catch (err) {
+        activityStatus.textContent = 'Error sending signature request.';
+        activityStatus.style.color = '#e74c3c';
+      }
+    });
+  });
+}
+
+document.getElementById("printActivitiesBtn").addEventListener("click", async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape" });
+  const logoImg = '';
+  if (logoImg) {
+    doc.addImage(logoImg, "PNG", 10, 5, 40, 20);
+  }
+  let y = logoImg ? 30 : 15;
+  doc.setFontSize(22);
+  doc.text("VolunteerHub Volunteer Hours", 80, y);
+  y += 12;
+  let volunteerName = currentUsername;
+  try {
+    const userRes = await fetch(`${API_URL}/users`, {
+      method: "GET",
+      headers: { "Authorization": `Bearer ${lastToken}` }
+    });
+    const userData = await userRes.json();
+    if (userData.firstName || userData.lastName) {
+      volunteerName = `${userData.firstName || ""} ${userData.lastName || ""}`.trim();
+    }
+  } catch {}
+  doc.setFontSize(14);
+  doc.text(`Volunteer: ${volunteerName}`, 14, y);
+  y += 8;
+  const res = await fetch(`${API_URL}/activities/${currentUsername}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${lastToken}`,
+      "Accept": "application/json"
+    }
+  });
+  const data = await res.json();
+  const activities = data.activities || [];
+  const tableBody = activities.map(act => [
+    act.name || act.title || "",
+    act.date || act.activityDate || "",
+    act.supervisorName || "",
+    act.location || act.place || "",
+    ""
+  ]);
+  doc.autoTable({
+    startY: y + 5,
+    head: [["Activity Name", "Date", "Supervisor", "Organization/Location", "Signature"]],
+    body: tableBody,
+    theme: "grid",
+    styles: { fontSize: 12, cellPadding: 3, minCellHeight: 15 },
+    columnStyles: {
+      0: { cellWidth: 50 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 40 },
+      3: { cellWidth: 50 },
+      4: { cellWidth: 50 }
+    },
+    didDrawCell: function (data) {
+      if (data.column.index === 4) {
+        const act = activities[data.row.index];
+        if (act && act.signed && act.signatureData) {
+          doc.addImage(
+            act.signatureData,
+            "PNG",
+            data.cell.x + 2,
+            data.cell.y + 2,
+            40,
+            15
+          );
+        } else if (act && !act.signed) {
+          doc.setFontSize(10);
+          doc.text("Not signed", data.cell.x + 5, data.cell.y + 12);
+        }
+      }
+    }
+  });
+  doc.save("volunteer_hours.pdf");
+});
+
         // Fetch and display activities from Firestore
         async function loadActivities() {
             activitiesList.innerHTML = '<li class="text-gray-500">Loading...</li>';
@@ -366,7 +546,6 @@
 
         addActivityForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const title = document.getElementById('activityTitle').value;
             const place = document.getElementById('activityPlace').value;
             const activityDate = document.getElementById('activityDate').value;
@@ -374,39 +553,62 @@
             const endTime = document.getElementById('activityEndTime').value;
             const supervisorName = document.getElementById('supervisorName').value;
             const supervisorEmail = document.getElementById('supervisorEmail').value;
-
             const activity = {
-                title,
-                place,
-                activityDate,
-                startTime,
-                endTime,
+                name: title,
+                date: activityDate,
+                start_time: startTime,
+                end_time: endTime,
+                location: place,
                 supervisorName,
                 supervisorEmail
             };
-
+            const getSignature = document.getElementById('getSignatureCheckbox').checked;
             try {
-                const res = await fetch('/add-activity', {
+                const res = await fetch(`${API_URL}/activities`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        ...(lastToken ? { 'Authorization': `Bearer ${lastToken}` } : {})
                     },
                     body: JSON.stringify(activity)
                 });
                 if (!res.ok) throw new Error('Failed to add activity');
+                if (getSignature) {
+                    const sigRes = await fetch(`${API_URL}/send-signature-request`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${lastToken}`
+                        },
+                        body: JSON.stringify(activity)
+                    });
+                    const sigData = await sigRes.json();
+                    if (!sigRes.ok) {
+                        document.getElementById('activityStatus').textContent = `Activity added, but failed to send signature email: ${sigData.message}`;
+                        document.getElementById('activityStatus').style.color = '#e74c3c';
+                    } else {
+                        document.getElementById('activityStatus').textContent = 'Activity added and signature request sent!';
+                        document.getElementById('activityStatus').style.color = '#27ae60';
+                    }
+                } else {
+                    document.getElementById('activityStatus').textContent = 'Activity added successfully!';
+                    document.getElementById('activityStatus').style.color = '#27ae60';
+                }
                 addActivityForm.reset();
                 addActivityForm.classList.add('hidden');
-                await loadActivities(); // Reload activities from Firestore
+                await fetchAndRenderActivities();
             } catch (err) {
-                alert('Error adding activity.');
+                document.getElementById('activityStatus').textContent = 'Error adding activity.';
+                document.getElementById('activityStatus').style.color = '#e74c3c';
             }
         });
 
         // Load activities on page load
-        loadActivities();
+        fetchAndRenderActivities();
     </script>
     <script type="module" src="/public/app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
 

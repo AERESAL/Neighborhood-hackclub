@@ -1,5 +1,5 @@
 const API_URL_LOCAL = "http://localhost:3000";
-const API_URL_PROD = "https://volunteerhub-qfkx.onrender.com";
+const API_URL_PROD = "https://neighborhood-liard.vercel.app";
 const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
   ? API_URL_LOCAL
   : API_URL_PROD;

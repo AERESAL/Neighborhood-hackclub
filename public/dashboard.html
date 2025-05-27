@@ -84,19 +84,20 @@
     <header class="flex items-center justify-between bg-white shadow-md px-6 py-4 fixed top-0 left-0 w-full z-50">
         <h1 class="text-xl font-bold text-gray-700">VolunteerHub</h1>
         <div class="relative flex items-center gap-4">
-            <!-- Theme Switcher -->
-            <button id="themeSwitcher" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1.5M12 19.5V21M4.22 4.22l1.06 1.06M18.72 18.72l1.06 1.06M3 12h1.5M19.5 12H21M4.22 19.78l1.06-1.06M18.72 5.28l1.06-1.06M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
-                </svg>
-            </button>
-
             <!-- Profile -->
             <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md">
                 <ul class="py-2 text-sm text-gray-700">
                     <li><a href="#" class="block px-4 py-2 hover:bg-gray-200">Profile</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-200">Settings</a></li>
+                    <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" onclick="toggleSettingsMenu(event)">Settings</a>
+                  <div id="settingsMenu" class="hidden bg-white shadow-md rounded-md mt-2 p-2">
+                    <div class="mb-2 font-semibold">Theme</div>
+                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="light">Light</button>
+                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="dark">Dark</button>
+                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="system">System Default</button>
+                  </div>
+                </li>
                     <li><button class="w-full text-left block px-4 py-2 text-red-600 hover:bg-gray-200">Log Out</button></li>
                 </ul>
             </div>
@@ -116,11 +117,11 @@
             </nav>
 
             <div class="flex items-center justify-center gap-4 mb-4 px-6">
-                <button class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
-                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
+                <button id="sidebarSettingsBtn" class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
+                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#ffffff"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
                 </button>
-                <button class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
-                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/></svg>
+                <button id="sidebarPrintBtn" class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
+                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/></svg>
                 </button>
             </div>
         </aside>
@@ -217,6 +218,21 @@
             menu.classList.toggle("hidden");
         }
 
+        function toggleSettingsMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById("settingsMenu");
+            menu.classList.toggle("hidden");
+        }
+
+        document.addEventListener('click', function(e) {
+            const settingsMenu = document.getElementById('settingsMenu');
+            if (settingsMenu && !settingsMenu.classList.contains('hidden')) {
+                if (!settingsMenu.contains(e.target) && e.target.textContent !== 'Settings') {
+                    settingsMenu.classList.add('hidden');
+                }
+            }
+        });
+
         let isEditing = false;
         const editButton = document.getElementById("editButton");
         const container = document.getElementById("container");
@@ -285,43 +301,160 @@
             });
         });
 
+        // Remove theme switcher button event and element
         const themeSwitcher = document.getElementById('themeSwitcher');
-        themeSwitcher.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
+        if (themeSwitcher) themeSwitcher.remove();
+        // Sidebar settings and print button functionality
+        document.getElementById('sidebarSettingsBtn').onclick = function() {
+            window.location.href = 'settings.html';
+        };
+        document.getElementById('sidebarPrintBtn').onclick = function() {
+            document.getElementById('printActivitiesBtn').click();
+        };
 
-            // Update header and sidebar themes dynamically
+        // --- Theme selection logic ---
+        function applyTheme(theme) {
             const header = document.querySelector('header');
             const sidebar = document.querySelector('aside');
             const backgroundVideo = document.getElementById('backgroundVideo');
-            const isDarkMode = document.body.classList.contains('dark');
-
-            if (isDarkMode) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
                 header.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
                 sidebar.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
-                backgroundVideo.src = 'https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4'; // Switch to dark mode video
+                backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4';
             } else {
+                document.body.classList.remove('dark');
                 header.classList.remove('dark:bg-gray-800', 'dark:text-gray-200');
                 sidebar.classList.remove('dark:bg-gray-800', 'dark:text-gray-200');
-                backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Switch to light mode video
+                backgroundVideo.src = 'https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4';
             }
+        }
 
-            // Save theme preference to localStorage
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function setTheme(theme) {
+            if (theme === 'system') {
+                theme = getSystemTheme();
+            }
+            applyTheme(theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        // Listen for theme option clicks
+        document.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const selected = this.getAttribute('data-theme');
+                if (selected === 'system') {
+                    localStorage.setItem('theme', 'system');
+                    setTheme('system');
+                } else {
+                    setTheme(selected);
+                }
+            });
         });
 
-        // Apply saved theme preference on page load
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark');
+        // Apply saved or system theme on page load
+        let savedTheme = localStorage.getItem('theme');
+        if (!savedTheme) savedTheme = 'system';
+        if (savedTheme === 'system') {
+            setTheme('system');
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (localStorage.getItem('theme') === 'system') setTheme('system');
+            });
+        } else {
+            setTheme(savedTheme);
+        }
 
-            // Ensure header and sidebar are updated on page load
+        // --- Theme from cookies helper ---
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        function applyDashboardTheme(theme) {
+            // Set background video or image
+            let bgMedia = document.getElementById('backgroundVideo');
+            if (theme.background.endsWith('.mp4')) {
+                if (!bgMedia || bgMedia.tagName !== 'VIDEO') {
+                    if (bgMedia) bgMedia.remove();
+                    bgMedia = document.createElement('video');
+                    bgMedia.id = 'backgroundVideo';
+                    bgMedia.className = 'prevent-select fixed top-0 left-0 w-full h-full object-cover -z-10';
+                    bgMedia.autoplay = true;
+                    bgMedia.loop = true;
+                    bgMedia.muted = true;
+                    bgMedia.playsInline = true;
+                    document.body.prepend(bgMedia);
+                }
+                bgMedia.src = theme.background;
+            } else {
+                if (!bgMedia || bgMedia.tagName !== 'IMG') {
+                    if (bgMedia) bgMedia.remove();
+                    bgMedia = document.createElement('img');
+                    bgMedia.id = 'backgroundVideo';
+                    bgMedia.className = 'prevent-select fixed top-0 left-0 w-full h-full object-cover -z-10';
+                    document.body.prepend(bgMedia);
+                }
+                bgMedia.src = theme.background;
+            }
+            // Apply text and accent colors
+            document.body.style.color = theme.textColor;
             const header = document.querySelector('header');
             const sidebar = document.querySelector('aside');
-            const backgroundVideo = document.getElementById('backgroundVideo');
-            header.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
-            sidebar.classList.add('dark:bg-gray-800', 'dark:text-gray-200');
-            backgroundVideo.src = 'https://cdn.pixabay.com/video/2025/04/07/270507_large.mp4'; // Set dark mode video on load
+            if (header) header.style.background = theme.color2;
+            if (sidebar) sidebar.style.background = theme.color2;
+            // --- Activities Section Theming ---
+            const activitiesSection = document.getElementById('activitiesSection');
+            if (activitiesSection) {
+                activitiesSection.style.background = theme.color2;
+                activitiesSection.style.color = theme.textColor;
+                activitiesSection.style.borderColor = theme.accents;
+            }
+            // Style activities section title and buttons
+            const activitiesTitle = activitiesSection ? activitiesSection.querySelector('h2') : null;
+            if (activitiesTitle) activitiesTitle.style.color = theme.accents;
+            const addActivityBtn = document.getElementById('addActivityBtn');
+            if (addActivityBtn) {
+                addActivityBtn.style.background = theme.accents;
+                addActivityBtn.style.color = theme.textColor;
+                addActivityBtn.style.border = `1.5px solid ${theme.accents}`;
+            }
+            const printBtn = document.getElementById('printActivitiesBtn');
+            if (printBtn) {
+                printBtn.style.background = theme.accents;
+                printBtn.style.color = theme.textColor;
+                printBtn.style.border = `1.5px solid ${theme.accents}`;
+            }
+            // Style activity cards and signature buttons
+            const activityCards = document.querySelectorAll('#activitiesList > div');
+            activityCards.forEach(card => {
+                card.style.background = theme.color3;
+                card.style.color = theme.textColor;
+                card.style.border = `1.5px solid ${theme.accents}`;
+            });
+            const sigBtns = document.querySelectorAll('.get-signature-btn');
+            sigBtns.forEach(btn => {
+                btn.style.background = theme.accents;
+                btn.style.color = theme.textColor;
+                btn.style.border = `1.5px solid ${theme.accents}`;
+            });
         }
+        // On load, fetch theme from cookie and apply
+        (function() {
+            const themeIdx = getCookie('themeIdx');
+            if (themeIdx !== undefined) {
+                fetch('./themes.json')
+                  .then(res => res.json())
+                  .then(data => {
+                    const themes = data.themes;
+                    if (themes[themeIdx]) {
+                        applyDashboardTheme(themes[themeIdx]);
+                    }
+                  });
+            }
+        })();
 
         // Activities Section Script
         const addActivityBtn = document.getElementById('addActivityBtn');
@@ -360,7 +493,7 @@ async function fetchAndRenderActivities() {
   }
 }
 
-function renderActivitiesSection(activities) {
+        function renderActivitiesSection(activities) {
   const activitiesList = document.getElementById('activitiesList');
   let html = '';
   if (activities.length > 0) {
@@ -427,6 +560,19 @@ function renderActivitiesSection(activities) {
       }
     });
   });
+
+  // Re-apply theme to new activity cards/buttons
+  const themeIdx = getCookie('themeIdx');
+  if (themeIdx !== undefined) {
+    fetch('./themes.json')
+      .then(res => res.json())
+      .then(data => {
+        const themes = data.themes;
+        if (themes[themeIdx]) {
+          applyDashboardTheme(themes[themeIdx]);
+        }
+      });
+  }
 }
 
 document.getElementById("printActivitiesBtn").addEventListener("click", async () => {
@@ -605,16 +751,20 @@ document.getElementById("printActivitiesBtn").addEventListener("click", async ()
 
         // Load activities on page load
         fetchAndRenderActivities();
+
+        // Log Out button functionality
+        const logoutBtn = document.querySelector('#profileMenu button');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            });
+        }
     </script>
     <script type="module" src="/public/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
-
-
-
-
-
 
 

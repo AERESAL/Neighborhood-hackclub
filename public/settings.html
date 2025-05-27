@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerHub Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center">
+    <div id="settingsBgMediaContainer"></div>
+    <div id="settingsContent" class="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mt-12 relative z-10">
+        <button onclick="window.location.href='dashboard.html'" id="backBtn" class="mb-6 flex items-center font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            Back to Dashboard
+        </button>
+        <h1 id="settingsTitle" class="text-2xl font-bold mb-4">Settings</h1>
+        <div class="mb-6">
+            <h2 id="themeHeading" class="text-lg font-semibold mb-2">Choose Theme</h2>
+            <div id="themeSelector" class="grid grid-cols-2 gap-6"></div>
+        </div>
+        <div id="otherPrefs" class="text-gray-600">Other preferences coming soon.</div>
+    </div>
+    <script>
+// Load themes from themes.json and render theme buttons
+fetch('./themes.json')
+  .then(res => {
+    if (!res.ok) throw new Error('Could not load themes.json');
+    return res.json();
+  })
+  .then(data => {
+    const themes = data.themes;
+    const themeSelector = document.getElementById('themeSelector');
+    themeSelector.innerHTML = '';
+    themes.forEach((theme, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'flex flex-col items-center p-2 rounded-lg border-2 border-transparent hover:border-blue-500 focus:border-blue-600 transition';
+      btn.style.background = theme.color2;
+      btn.style.color = theme.textColor;
+      btn.setAttribute('data-theme-idx', idx);
+      let previewMedia;
+      if (theme.background.endsWith('.mp4')) {
+        previewMedia = `<video src="${theme.background}" class="rounded-md mb-2" style="width:180px;height:100px;object-fit:cover;" autoplay loop muted playsinline></video>`;
+      } else {
+        previewMedia = `<img src="${theme.background}" class="rounded-md mb-2" style="width:180px;height:100px;object-fit:cover;" alt="${theme.name} preview" />`;
+      }
+      btn.innerHTML = `
+        ${previewMedia}
+        <span class="font-medium">${theme.name}</span>
+      `;
+      btn.onclick = () => {
+        localStorage.setItem('themeIdx', idx);
+        document.cookie = `themeIdx=${idx}; path=/; max-age=31536000`;
+        applyTheme(theme);
+      };
+      themeSelector.appendChild(btn);
+    });
+    // On load, apply saved theme
+    const savedIdx = localStorage.getItem('themeIdx');
+    if (savedIdx && themes[savedIdx]) {
+      applyTheme(themes[savedIdx]);
+    } else if (themes[0]) {
+      applyTheme(themes[0]);
+    }
+  })
+  .catch(err => {
+    document.getElementById('themeSelector').innerHTML = '<div class="text-red-500">Failed to load themes.</div>';
+  });
+
+function applyTheme(theme) {
+  const container = document.getElementById('settingsBgMediaContainer');
+  container.innerHTML = '';
+  if (theme.background.endsWith('.mp4')) {
+    const video = document.createElement('video');
+    video.src = theme.background;
+    video.className = 'fixed top-0 left-0 w-full h-full object-cover -z-10';
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    container.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.src = theme.background;
+    img.className = 'fixed top-0 left-0 w-full h-full object-cover -z-10';
+    img.alt = theme.name + ' background';
+    container.appendChild(img);
+  }
+  // Apply text and accent colors
+  const content = document.getElementById('settingsContent');
+  const title = document.getElementById('settingsTitle');
+  const heading = document.getElementById('themeHeading');
+  const backBtn = document.getElementById('backBtn');
+  const otherPrefs = document.getElementById('otherPrefs');
+  content.style.background = theme.color2;
+  content.style.color = theme.textColor;
+  title.style.color = theme.textColor;
+  heading.style.color = theme.accents;
+  backBtn.style.color = theme.accents;
+  otherPrefs.style.color = theme.textColor;
+  // Style all theme buttons
+  document.querySelectorAll('#themeSelector button').forEach(btn => {
+    btn.style.borderColor = theme.accents;
+    btn.style.color = theme.textColor;
+  });
+}
+</script>
+</body>
+</html>
+
+

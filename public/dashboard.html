@@ -243,6 +243,29 @@
             <button id="printActivitiesBtn" style="margin:20px 0; display:none;" class="px-4 py-2 bg-purple-600 text-white rounded-md">Print Activities PDF</button>
         </section>
         <!-- End Activities Section -->
+
+        <!-- Leaderboard Section -->
+        <section id="leaderboardSection" class="mt-12 bg-white bg-opacity-80 rounded-md shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Leaderboard</h2>
+            </div>
+            <div id="leaderboardStatus" class="mb-4"></div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volunteer</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody" class="bg-white divide-y divide-gray-200">
+                        <tr><td colspan="3" class="text-center text-gray-400 py-4">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <!-- End Leaderboard Section -->
         </main>
     </div>
 
@@ -971,11 +994,48 @@ async function updateUnapprovedWidget() {
 // Call on load and after activities update
 updateApprovedWidget();
 updateUnapprovedWidget();
+
+// --- Leaderboard Section Script ---
+async function fetchAndRenderLeaderboard() {
+  const leaderboardBody = document.getElementById('leaderboardBody');
+  const leaderboardStatus = document.getElementById('leaderboardStatus');
+  leaderboardBody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-400 py-4">Loading...</td></tr>';
+  leaderboardStatus.textContent = '';
+  try {
+    const res = await fetch(`${API_URL}/leaderboard`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        ...(lastToken ? { 'Authorization': `Bearer ${lastToken}` } : {})
+      },
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('Failed to fetch leaderboard');
+    const data = await res.json();
+    const leaderboard = data.leaderboard || [];
+    if (leaderboard.length === 0) {
+      leaderboardBody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-400 py-4">No data available.</td></tr>';
+      return;
+    }
+    leaderboardBody.innerHTML = leaderboard.map((entry, idx) => `
+      <tr>
+        <td class="px-6 py-4 whitespace-nowrap">${idx + 1}</td>
+        <td class="px-6 py-4 whitespace-nowrap font-semibold">${entry.username || entry.name || ''}</td>
+        <td class="px-6 py-4 whitespace-nowrap">${entry.approvedHours?.toFixed ? entry.approvedHours.toFixed(2) : entry.approvedHours || 0}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    leaderboardBody.innerHTML = '<tr><td colspan="3" class="text-center text-red-400 py-4">Error loading leaderboard.</td></tr>';
+    leaderboardStatus.textContent = 'Could not load leaderboard.';
+    leaderboardStatus.style.color = '#e74c3c';
+  }
+}
+// Fetch leaderboard on page load
+fetchAndRenderLeaderboard();
     </script>
     <script type="module" src="/public/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
-
 

@@ -447,6 +447,30 @@ app.post('/sign-activity/:token', async (req, res) => {
   }
 });
 
+// Update user info (JWT protected)
+app.put('/users', authenticateJWT, async (req, res) => {
+  try {
+    const { username, firstName, lastName, email, phone, profilePic } = req.body;
+    const userRef = db.collection('users').doc(req.username);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).json({ message: 'User not found' });
+
+    // Only update fields that are provided
+    const updates = {};
+    if (username) updates.username = username;
+    if (firstName) updates.firstName = firstName;
+    if (lastName) updates.lastName = lastName;
+    if (email) updates.email = email;
+    if (phone) updates.phone = phone;
+    if (profilePic) updates.profilePic = profilePic;
+
+    await userRef.update(updates);
+    res.status(200).json({ message: 'Profile updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
 

@@ -107,6 +107,15 @@
   font-size: 12px;
 }
   </style>
+  <script>
+  // Redirect to dashboard if already authenticated
+  (function() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      window.location.href = 'dashboard.html';
+    }
+  })();
+</script>
 </head>
 <body>
   <!-- Background Video -->

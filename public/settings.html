@@ -17,6 +17,58 @@
             Back to Dashboard
         </button>
         <h1 id="settingsTitle" class="text-2xl font-bold mb-4">Settings</h1>
+        <!-- Profile Section -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold mb-2">Profile</h2>
+            <form id="profileForm" class="space-y-4">
+                <div>
+                    <label for="profilePic" class="block text-sm font-medium mb-1">Profile Picture</label>
+                    <div class="flex items-center gap-4 mb-2">
+                        <img id="profilePicPreview" src="" alt="Profile Picture" class="w-16 h-16 rounded-full object-cover border" style="display:none;" />
+                        <input type="file" id="profilePic" name="profilePic" accept="image/*" class="block" />
+                    </div>
+                </div>
+                <div>
+                    <label for="profileUsername" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="profileUsername" name="username" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profileName" class="block text-sm font-medium mb-1">Name</label>
+                    <input type="text" id="profileName" name="name" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profileEmail" class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="profileEmail" name="email" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profilePhone" class="block text-sm font-medium mb-1">Phone Number</label>
+                    <input type="tel" id="profilePhone" name="phone" class="w-full border rounded px-3 py-2" />
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save Changes</button>
+                <div id="profileStatus" class="text-sm mt-2"></div>
+            </form>
+            <!-- Change Password Section -->
+            <div class="mt-8">
+                <h3 class="text-md font-semibold mb-2">Change Password</h3>
+                <form id="passwordForm" class="space-y-3">
+                    <div>
+                        <label for="oldPassword" class="block text-sm font-medium mb-1">Current Password</label>
+                        <input type="password" id="oldPassword" name="oldPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium mb-1">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium mb-1">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded">Change Password</button>
+                    <div id="passwordStatus" class="text-sm mt-2"></div>
+                </form>
+            </div>
+        </div>
+        <!-- End Profile Section -->
         <div class="mb-6">
             <h2 id="themeHeading" class="text-lg font-semibold mb-2">Choose Theme</h2>
             <div id="themeSelector" class="grid grid-cols-2 gap-6"></div>
@@ -106,6 +158,144 @@ function applyTheme(theme) {
     btn.style.color = theme.textColor;
   });
 }
+// --- Profile Section Logic ---
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://neighborhood-liard.vercel.app";
+const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+
+const token = localStorage.getItem('token');
+const profileForm = document.getElementById('profileForm');
+const profileUsername = document.getElementById('profileUsername');
+const profileName = document.getElementById('profileName');
+const profileEmail = document.getElementById('profileEmail');
+const profilePhone = document.getElementById('profilePhone');
+const profileStatus = document.getElementById('profileStatus');
+const profilePic = document.getElementById('profilePic');
+const profilePicPreview = document.getElementById('profilePicPreview');
+let profilePicData = null;
+
+// Show preview and store base64 when user selects a file
+profilePic.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            profilePicData = evt.target.result;
+            profilePicPreview.src = profilePicData;
+            profilePicPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Fetch user info and prefill form
+async function loadProfile() {
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch user info');
+        const data = await res.json();
+        if (data.profilePic) {
+            profilePicPreview.src = data.profilePic;
+            profilePicPreview.style.display = 'block';
+            profilePicData = data.profilePic;
+        } else {
+            profilePicPreview.style.display = 'none';
+            profilePicPreview.src = '';
+            profilePicData = null;
+        }
+        if (data.username) profileUsername.value = data.username;
+        if (data.firstName || data.lastName) {
+            profileName.value = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+        } else if (data.username) {
+            profileName.value = data.username;
+        }
+        if (data.email) profileEmail.value = data.email;
+        if (data.phone) profilePhone.value = data.phone;
+    } catch (err) {
+        profileStatus.textContent = 'Could not load profile info.';
+        profileStatus.style.color = '#e74c3c';
+    }
+}
+
+profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    profileStatus.textContent = 'Saving...';
+    profileStatus.style.color = '#333';
+    const username = profileUsername.value.trim();
+    const [firstName, ...rest] = profileName.value.trim().split(' ');
+    const lastName = rest.join(' ');
+    const email = profileEmail.value.trim();
+    const phone = profilePhone.value.trim();
+    // Add profilePicData if available
+    const payload = { username, firstName, lastName, email, phone };
+    if (profilePicData) payload.profilePic = profilePicData;
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Failed to update profile');
+        profileStatus.textContent = 'Profile updated!';
+        profileStatus.style.color = '#27ae60';
+    } catch (err) {
+        profileStatus.textContent = 'Error updating profile.';
+        profileStatus.style.color = '#e74c3c';
+    }
+});
+
+// Password change logic
+const passwordForm = document.getElementById('passwordForm');
+const oldPassword = document.getElementById('oldPassword');
+const newPassword = document.getElementById('newPassword');
+const confirmPassword = document.getElementById('confirmPassword');
+const passwordStatus = document.getElementById('passwordStatus');
+
+passwordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    passwordStatus.textContent = 'Changing password...';
+    passwordStatus.style.color = '#333';
+    if (newPassword.value !== confirmPassword.value) {
+        passwordStatus.textContent = 'New passwords do not match.';
+        passwordStatus.style.color = '#e74c3c';
+        return;
+    }
+    try {
+        const res = await fetch(`${API_URL}/users/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ oldPassword: oldPassword.value, newPassword: newPassword.value })
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            passwordStatus.textContent = data.message || 'Failed to change password.';
+            passwordStatus.style.color = '#e74c3c';
+        } else {
+            passwordStatus.textContent = 'Password changed successfully!';
+            passwordStatus.style.color = '#27ae60';
+            passwordForm.reset();
+        }
+    } catch (err) {
+        passwordStatus.textContent = 'Error changing password.';
+        passwordStatus.style.color = '#e74c3c';
+    }
+});
+
+loadProfile();
 </script>
 </body>
 </html>

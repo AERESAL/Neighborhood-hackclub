@@ -21,16 +21,53 @@
             background: rgba(0, 0, 0, 0.7); /* Increase transparency */
             color: white; /* Ensure text is visible on dark background */
             text-align: center;
-            line-height: 25vh;
             font-size: 1.2rem;
             position: absolute;
             border-radius: 10px;
             cursor: grab;
+            resize: none;
+            overflow: auto;
+            min-width: 180px;
+            min-height: 120px;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         .editing .widget {
             cursor: move;
+            resize: both;
         }
+
+        .editing .widget.corner-indicator {
+            position: relative;
+        }
+.editing .widget::after,
+.editing .widget::before,
+.editing .widget .corner-br {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    background: none;
+    display: none;
+}
+.editing .widget .corner-br { right: 0; bottom: 0; display: block; }
+
+.editing .widget .corner-br::before,
+.editing .widget .corner-br::after {
+    content: '';
+    position: absolute;
+    background: white;
+}
+.editing .widget .corner-br::before {
+    right: 0; bottom: 0;
+    width: 26px; height: 7px;
+    border-bottom-right-radius: 24px 24px;
+}
+.editing .widget .corner-br::after {
+    right: 0; bottom: 0;
+    width: 7px; height: 26px;
+    border-bottom-right-radius: 24px 24px;
+}
 
         #widget1 {
             top: 0;
@@ -72,9 +109,24 @@
         -ms-user-select: none; /* IE 10 and IE 11 */
         user-select: none; /* Standard syntax */
         }
+        .widget, .widget * {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen">
+    <script>
+  // Redirect to login if not authenticated
+  (function() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+  })();
+</script>
+
     <!-- Background Video -->
     <video autoplay muted loop id="backgroundVideo" class="prevent-select">
         <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
@@ -86,19 +138,10 @@
         <div class="relative flex items-center gap-4">
             <!-- Profile -->
             <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
-            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md">
-                <ul class="py-2 text-sm text-gray-700">
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-200">Profile</a></li>
-                    <li>
-                  <a href="#" class="block px-4 py-2 hover:bg-gray-200" onclick="toggleSettingsMenu(event)">Settings</a>
-                  <div id="settingsMenu" class="hidden bg-white shadow-md rounded-md mt-2 p-2">
-                    <div class="mb-2 font-semibold">Theme</div>
-                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="light">Light</button>
-                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="dark">Dark</button>
-                    <button class="theme-option block w-full text-left px-2 py-1 hover:bg-gray-100" data-theme="system">System Default</button>
-                  </div>
-                </li>
-                    <li><button class="w-full text-left block px-4 py-2 text-red-600 hover:bg-gray-200">Log Out</button></li>
+            <div id="profileMenu" class="hidden absolute top-16 right-0 w-44 shadow-lg rounded-md z-50 border transition-colors">
+                <ul class="py-2 text-sm" id="profileMenuList">
+                    <li><a href="#" class="block px-4 py-2">Profile</a></li>
+                    <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
                 </ul>
             </div>
         </div>
@@ -130,20 +173,40 @@
         <!-- Main Content with Movable Widgets -->
         <main class="flex-1 p-6 ml-64 relative mt-[64px]">
             <!-- Greeting Container -->
-            <div class="bg-black bg-opacity-50 text-white p-6 rounded-md shadow-md">
+            <div class="bg-black bg-opacity-50 text-white p-6 rounded-md shadow-md relative">
+                <button id="editButton" class="absolute top-4 right-4 p-2 rounded-full transition-colors" title="Edit Widgets" style="background: var(--accent, #2563eb);">
+                  <svg id="editIcon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"/></svg>
+                </button>
                 <h1 id="greeting" class="text-3xl font-bold"></h1>
                 <p id="currentDate" class="text-lg mt-2"></p>
-                <button id="editButton" class="px-4 py-2 bg-blue-600 text-white rounded-md">Enable Edit Mode</button>
             </div>
 
             <!-- Movable Widgets -->
         <!-- Movable Container -->
         <div class="container" id="container">
             <!-- Movable Widgets -->
-            <div class="widget bg-black bg-opacity-25 text-white" id="widget1">Widget 1</div>
-            <div class="widget bg-black bg-opacity-25 text-white" id="widget2">Widget 2</div>
-            <div class="widget bg-black bg-opacity-25 text-white" id="widget3">Widget 3</div>
-            <div class="widget bg-black bg-opacity-25 text-white" id="widget4">Widget 4</div>
+            <div class="widget bg-black bg-opacity-25 text-white flex flex-col items-center justify-center select-none" id="widget1" style="user-select: none;">
+  <div class="corner-br"></div>
+  <div class="text-lg font-semibold mb-1">Approved Hours</div>
+  <div id="approvedHours" class="text-3xl font-bold">0</div>
+  <div class="text-sm mt-1">Signed Activities</div>
+  <div id="approvedActivities" class="text-xl font-semibold">0</div>
+</div>
+            <div class="widget bg-black bg-opacity-25 text-white flex flex-col items-center justify-center select-none" id="widget2" style="user-select: none;">
+  <div class="corner-br"></div>
+  <div class="text-lg font-semibold mb-1">Unapproved Hours</div>
+  <div id="unapprovedHours" class="text-3xl font-bold">0</div>
+  <div class="text-sm mt-1">Unapproved Activities</div>
+  <div id="unapprovedActivities" class="text-xl font-semibold">0</div>
+</div>
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget3">
+  <div class="corner-br"></div>
+  Widget 3
+</div>
+            <div class="widget bg-black bg-opacity-25 text-white" id="widget4">
+  <div class="corner-br"></div>
+  Widget 4
+</div>
         </div>
 
         <!-- Activities Section -->
@@ -184,6 +247,14 @@
     </div>
 
     <script>
+        // --- Redirect to login if not authenticated ---
+        (function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+        })();
+
         // --- JWT decode helper ---
         function parseJwt (token) {
             try {
@@ -218,12 +289,6 @@
             menu.classList.toggle("hidden");
         }
 
-        function toggleSettingsMenu(event) {
-            event.stopPropagation();
-            const menu = document.getElementById("settingsMenu");
-            menu.classList.toggle("hidden");
-        }
-
         document.addEventListener('click', function(e) {
             const settingsMenu = document.getElementById('settingsMenu');
             if (settingsMenu && !settingsMenu.classList.contains('hidden')) {
@@ -235,71 +300,96 @@
 
         let isEditing = false;
         const editButton = document.getElementById("editButton");
+        const editIcon = document.getElementById("editIcon");
         const container = document.getElementById("container");
 
+        // Fetch accent color from themes.json and apply to edit button
+        function applyEditButtonAccent() {
+          const themeIdx = getCookie('themeIdx');
+          if (themeIdx !== undefined) {
+            fetch('./themes.json')
+              .then(res => res.json())
+              .then(data => {
+                const themes = data.themes;
+                if (themes[themeIdx] && themes[themeIdx].accents) {
+                  editButton.style.background = themes[themeIdx].accents;
+                }
+              });
+          }
+        }
+        applyEditButtonAccent();
+
         editButton.addEventListener("click", () => {
-            isEditing = !isEditing;
-            container.classList.toggle("editing", isEditing);
-            editButton.innerText = isEditing ? "Disable Edit Mode" : "Enable Edit Mode";
+          isEditing = !isEditing;
+          container.classList.toggle("editing", isEditing);
+          if (isEditing) {
+            editButton.classList.add('ring-4', 'ring-white');
+          } else {
+            editButton.classList.remove('ring-4', 'ring-white');
+          }
         });
 
         // Ensure the container is not moveable
         container.style.position = "relative";
 
-        document.querySelectorAll('.widget').forEach(widget => {
-            widget.addEventListener('mousedown', (event) => {
-                if (!isEditing) return;
-
-                let offsetX = event.clientX - widget.offsetLeft;
-                let offsetY = event.clientY - widget.offsetTop;
-
-                function moveWidget(e) {
-                    let newLeft = e.clientX - offsetX;
-                    let newTop = e.clientY - offsetY;
-
-                    // Constrain movement within the container
-                    const containerRect = container.getBoundingClientRect();
-                    const widgetRect = widget.getBoundingClientRect();
-
-                    if (newLeft < 0) newLeft = 0;
-                    if (newTop < 0) newTop = 0;
-                    if (newLeft + widgetRect.width > containerRect.width) newLeft = containerRect.width - widgetRect.width;
-                    if (newTop + widgetRect.height > containerRect.height) newTop = containerRect.height - widgetRect.height;
-
-                    // Check for collisions with other widgets
-                    const widgets = document.querySelectorAll('.widget');
-                    let collision = false;
-
-                    widgets.forEach(otherWidget => {
-                        if (otherWidget === widget) return; // Skip the current widget
-
-                        const otherRect = otherWidget.getBoundingClientRect();
-
-                        if (
-                            newLeft < otherRect.right - containerRect.left &&
-                            newLeft + widgetRect.width > otherRect.left - containerRect.left &&
-                            newTop < otherRect.bottom - containerRect.top &&
-                            newTop + widgetRect.height > otherRect.top - containerRect.top
-                        ) {
-                            collision = true;
-                        }
-                    });
-
-                    if (!collision) {
-                        widget.style.left = `${newLeft}px`;
-                        widget.style.top = `${newTop}px`;
-                    }
+        // --- Widget Drag & Resize Logic ---
+document.querySelectorAll('.widget').forEach(widget => {
+    // Remove JS that creates/toggles corner indicators
+    widget.addEventListener('mousedown', (event) => {
+        // Prevent drag if resizing (on resize handle)
+        if (!isEditing || event.target.classList.contains('widget-resize-handle')) return;
+        // Prevent drag if resizing (on native resize handle)
+        if (isEditing && (event.offsetX > widget.clientWidth - 20 && event.offsetY > widget.clientHeight - 20)) return;
+        let offsetX = event.clientX - widget.offsetLeft;
+        let offsetY = event.clientY - widget.offsetTop;
+        let isResizing = false;
+        function moveWidget(e) {
+            if (isResizing) return;
+            let newLeft = e.clientX - offsetX;
+            let newTop = e.clientY - offsetY;
+            // Constrain movement within the container
+            const containerRect = container.getBoundingClientRect();
+            const widgetRect = widget.getBoundingClientRect();
+            if (newLeft < 0) newLeft = 0;
+            if (newTop < 0) newTop = 0;
+            if (newLeft + widgetRect.width > containerRect.width) newLeft = containerRect.width - widgetRect.width;
+            if (newTop + widgetRect.height > containerRect.height) newTop = containerRect.height - widgetRect.height;
+            // Check for collisions with other widgets
+            const widgets = document.querySelectorAll('.widget');
+            let collision = false;
+            widgets.forEach(otherWidget => {
+                if (otherWidget === widget) return;
+                const otherRect = otherWidget.getBoundingClientRect();
+                if (
+                    newLeft < otherRect.right - containerRect.left &&
+                    newLeft + widgetRect.width > otherRect.left - containerRect.left &&
+                    newTop < otherRect.bottom - containerRect.top &&
+                    newTop + widgetRect.height > otherRect.top - containerRect.top
+                ) {
+                    collision = true;
                 }
-
-                function stopMove() {
-                    document.removeEventListener('mousemove', moveWidget);
-                    document.removeEventListener('mouseup', stopMove);
-                }
-
-                document.addEventListener('mousemove', moveWidget);
-                document.addEventListener('mouseup', stopMove);
             });
-        });
+            if (!collision) {
+                widget.style.left = `${newLeft}px`;
+                widget.style.top = `${newTop}px`;
+            }
+        }
+        function stopMove() {
+            document.removeEventListener('mousemove', moveWidget);
+            document.removeEventListener('mouseup', stopMove);
+        }
+        document.addEventListener('mousemove', moveWidget);
+        document.addEventListener('mouseup', stopMove);
+    });
+    // Prevent moving while resizing
+    widget.addEventListener('mousedown', (event) => {
+        if (!isEditing) return;
+        // If mouse is on the resize handle (bottom-right corner), don't allow move
+        if (event.offsetX > widget.clientWidth - 20 && event.offsetY > widget.clientHeight - 20) {
+            event.stopPropagation();
+        }
+    });
+});
 
         // Remove theme switcher button event and element
         const themeSwitcher = document.getElementById('themeSwitcher');
@@ -743,6 +833,8 @@ document.getElementById("printActivitiesBtn").addEventListener("click", async ()
                 addActivityForm.reset();
                 addActivityForm.classList.add('hidden');
                 await fetchAndRenderActivities();
+                updateApprovedWidget();
+                updateUnapprovedWidget();
             } catch (err) {
                 document.getElementById('activityStatus').textContent = 'Error adding activity.';
                 document.getElementById('activityStatus').style.color = '#e74c3c';
@@ -760,6 +852,125 @@ document.getElementById("printActivitiesBtn").addEventListener("click", async ()
                 window.location.href = 'login.html';
             });
         }
+        // Ensure Log Out button always works, even if menu is hidden at load
+function handleLogoutClick(e) {
+    if (e.target.matches('#profileMenu .text-red-600')) {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+    }
+}
+document.getElementById('profileMenu').addEventListener('click', handleLogoutClick);
+// --- Theme application for profile menu ---
+function applyProfileMenuTheme(theme) {
+    const profileMenu = document.getElementById('profileMenu');
+    const profileMenuList = document.getElementById('profileMenuList');
+    if (!profileMenu || !profileMenuList) return;
+    profileMenu.style.background = theme.color2;
+    profileMenu.style.color = theme.textColor;
+    profileMenu.style.borderColor = theme.accents;
+    profileMenuList.querySelectorAll('a, button').forEach(el => {
+        el.style.color = theme.textColor;
+        el.style.background = 'transparent';
+        el.onmouseover = function() { this.style.background = theme.color3; };
+        el.onmouseout = function() { this.style.background = 'transparent'; };
+    });
+}
+// Patch applyDashboardTheme to also update profile menu
+const origApplyDashboardTheme = applyDashboardTheme;
+applyDashboardTheme = function(theme) {
+    origApplyDashboardTheme(theme);
+    applyProfileMenuTheme(theme);
+};
+// On load, also apply to profile menu if themeIdx is set
+(function() {
+    const themeIdx = getCookie('themeIdx');
+    if (themeIdx !== undefined) {
+        fetch('./themes.json')
+          .then(res => res.json())
+          .then(data => {
+            const themes = data.themes;
+            if (themes[themeIdx]) {
+                applyProfileMenuTheme(themes[themeIdx]);
+            }
+          });
+    }
+})();
+
+async function updateApprovedWidget() {
+  let approvedCount = 0;
+  let approvedHours = 0;
+  try {
+    const res = await fetch(`${API_URL}/activities/${currentUsername}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${lastToken}`,
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    const data = await res.json();
+    const activities = data.activities || [];
+    activities.forEach(act => {
+      if (act.signed) {
+        approvedCount++;
+        // Calculate hours (if start/end time available)
+        let start = act.start_time || act.startTime;
+        let end = act.end_time || act.endTime;
+        if (start && end) {
+          const [sh, sm] = start.split(":").map(Number);
+          const [eh, em] = end.split(":").map(Number);
+          let diff = (eh + em/60) - (sh + sm/60);
+          if (diff > 0) approvedHours += diff;
+        }
+      }
+    });
+    document.getElementById('approvedHours').textContent = approvedHours.toFixed(2);
+    document.getElementById('approvedActivities').textContent = approvedCount;
+  } catch (e) {
+    document.getElementById('approvedHours').textContent = '0';
+    document.getElementById('approvedActivities').textContent = '0';
+  }
+}
+
+async function updateUnapprovedWidget() {
+  let unapprovedCount = 0;
+  let unapprovedHours = 0;
+  try {
+    const res = await fetch(`${API_URL}/activities/${currentUsername}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${lastToken}`,
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    const data = await res.json();
+    const activities = data.activities || [];
+    activities.forEach(act => {
+      if (!act.signed) {
+        unapprovedCount++;
+        // Calculate hours (if start/end time available)
+        let start = act.start_time || act.startTime;
+        let end = act.end_time || act.endTime;
+        if (start && end) {
+          const [sh, sm] = start.split(":").map(Number);
+          const [eh, em] = end.split(":").map(Number);
+          let diff = (eh + em/60) - (sh + sm/60);
+          if (diff > 0) unapprovedHours += diff;
+        }
+      }
+    });
+    document.getElementById('unapprovedHours').textContent = unapprovedHours.toFixed(2);
+    document.getElementById('unapprovedActivities').textContent = unapprovedCount;
+  } catch (e) {
+    document.getElementById('unapprovedHours').textContent = '0';
+    document.getElementById('unapprovedActivities').textContent = '0';
+  }
+}
+
+// Call on load and after activities update
+updateApprovedWidget();
+updateUnapprovedWidget();
     </script>
     <script type="module" src="/public/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

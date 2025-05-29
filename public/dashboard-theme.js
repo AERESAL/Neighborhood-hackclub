@@ -32,16 +32,89 @@ function applyDashboardTheme(theme) {
     if (header) {
         header.style.background = theme.color2 || '';
         header.style.color = theme.textColor || '';
+        // Set all text elements in header to theme.textColor
+        header.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(el => {
+            el.style.color = theme.textColor || '';
+        });
     }
     if (sidebar) {
         sidebar.style.background = theme.color2 || '';
         sidebar.style.color = theme.textColor || '';
+        // Set all text elements in sidebar to theme.textColor
+        sidebar.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(el => {
+            el.style.color = theme.textColor || '';
+        });
     }
     // Accent color (for edit button, etc.)
     document.documentElement.style.setProperty('--accent', theme.accents || '#2563eb');
     // Body text color
     document.body.style.color = theme.textColor || '';
-
+    // Set all text elements in main to theme.textColor
+    const main = document.querySelector('main');
+    if (main) {
+        main.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div, th, td').forEach(el => {
+            el.style.color = theme.textColor || '';
+        });
+    }
+    // Activities and Leaderboard section backgrounds and text
+    const activitiesSection = document.getElementById('activitiesSection');
+    if (activitiesSection) {
+        activitiesSection.style.background = theme.color2 || '';
+        activitiesSection.style.color = theme.textColor || '';
+        activitiesSection.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div, th, td').forEach(el => {
+            el.style.color = theme.textColor || '';
+        });
+    }
+    const leaderboardSection = document.getElementById('leaderboardSection');
+    if (leaderboardSection) {
+        leaderboardSection.style.background = theme.color2 || '';
+        leaderboardSection.style.color = theme.textColor || '';
+        leaderboardSection.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div, th, td, tr').forEach(el => {
+            el.style.color = theme.textColor || '';
+            el.style.background = 'transparent'; // Remove Tailwind bg override
+        });
+        // Also update table header backgrounds to match theme.color2
+        leaderboardSection.querySelectorAll('th').forEach(th => {
+            th.style.background = theme.color2 || '';
+        });
+        // Remove Tailwind bg-white from tbody/tr/td
+        leaderboardSection.querySelectorAll('tbody, tr, td').forEach(el => {
+            el.style.background = 'transparent';
+        });
+    }
+    // Also apply theme to posts in dashboard (if any)
+    var postsList = document.getElementById('postsList');
+    if (postsList) {
+        // Use a more robust selector to get all post containers (including dynamic ones)
+        postsList.querySelectorAll('.bg-gray-100, [data-post], .post').forEach(function(div) {
+            div.style.background = theme.color3 || '';
+            div.style.color = theme.textColor || '';
+            div.querySelectorAll('*').forEach(function(el) {
+                el.style.color = theme.textColor || '';
+                el.style.background = 'transparent';
+            });
+        });
+    }
+    // Title card (greeting container)
+    var greetingCard = document.querySelector('.bg-black.bg-opacity-50.text-white.p-6.rounded-md.shadow-md.relative');
+    if (greetingCard) {
+        // Use theme.color2 for the background, with lighter opacity
+        greetingCard.style.background = hexToRgba(theme.color2 || '#ffffff', 0.5); // 50% opacity for lighter look
+        greetingCard.style.color = theme.textColor || '';
+        greetingCard.style.backdropFilter = 'blur(12px)';
+        greetingCard.querySelectorAll('*').forEach(function(el) {
+            el.style.color = theme.textColor || '';
+        });
+    }
+    // Widgets
+    document.querySelectorAll('.widget').forEach(function(widget) {
+        widget.style.background = (theme.color3 || theme.color2 || '') + (theme.color3 ? 'CC' : 'CC'); // Add ~80% opacity
+        widget.style.color = theme.textColor || '';
+        widget.style.backdropFilter = 'blur(2px)';
+        widget.querySelectorAll('*').forEach(function(el) {
+            el.style.color = theme.textColor || '';
+        });
+    });
     // After applying the theme, also update SVG icon color
     if (theme && theme.textColor) {
         if (window.applyThemedIcons) window.applyThemedIcons(theme.textColor);
@@ -65,3 +138,15 @@ function loadAndApplyDashboardTheme() {
 document.addEventListener('DOMContentLoaded', () => {
     loadAndApplyDashboardTheme();
 });
+
+// Helper to convert hex to rgba
+function hexToRgba(hex, alpha) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex.split('').map(x => x + x).join('');
+    }
+    var r = parseInt(hex.substring(0,2), 16);
+    var g = parseInt(hex.substring(2,4), 16);
+    var b = parseInt(hex.substring(4,6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}

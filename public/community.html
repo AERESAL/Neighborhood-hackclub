@@ -292,6 +292,81 @@ fetchFriends();
 
 // Initial load
 window.addEventListener('DOMContentLoaded', fetchAndRenderPosts);
-</script>
+
+// --- THEME LOGIC ---
+function applyCommunityTheme(theme) {
+  // Header
+  const header = document.querySelector('header');
+  if (header) {
+    header.style.background = theme.color2 || '';
+    header.style.color = theme.textColor || '';
+    header.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(function(el) {
+      el.style.color = theme.textColor || '';
+    });
+  }
+  // Sidebar (Friends)
+  const sidebar = document.getElementById('friendsSidebar');
+  if (sidebar) {
+    sidebar.style.background = theme.color2 || '';
+    sidebar.style.color = theme.textColor || '';
+    sidebar.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(function(el) {
+      el.style.color = theme.textColor || '';
+    });
+  }
+  // Main content
+  const main = document.querySelector('main');
+  if (main) {
+    main.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(function(el) {
+      el.style.color = theme.textColor || '';
+    });
+  }
+  // Community section background
+  var communitySection = document.querySelector('main > div');
+  if (communitySection) {
+    communitySection.style.background = theme.color2 || '';
+    communitySection.style.color = theme.textColor || '';
+    communitySection.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(function(el) {
+      el.style.color = theme.textColor || '';
+    });
+  }
+  // Posts backgrounds
+  function updatePostTheme() {
+    var themeColor = theme.color3 || '';
+    var textColor = theme.textColor || '';
+    document.querySelectorAll('#postsList > div').forEach(function(div) {
+      div.style.background = themeColor;
+      div.style.color = textColor;
+      // Also update all text inside the post
+      div.querySelectorAll('*').forEach(function(el) {
+        el.style.color = textColor;
+        el.style.background = 'transparent';
+      });
+    });
+  }
+  updatePostTheme();
+  // Also re-apply theme to posts after posts are loaded
+  window._updatePostTheme = updatePostTheme;
+}
+
+function loadAndApplyCommunityTheme() {
+  fetch('themes.json')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var themes = data.themes;
+      var idx = localStorage.getItem('themeIdx');
+      if (!idx || !themes[idx]) idx = 0;
+      applyCommunityTheme(themes[idx]);
+      if (window.applyThemedIcons) window.applyThemedIcons(themes[idx].textColor);
+    });
+}
+window.addEventListener('DOMContentLoaded', loadAndApplyCommunityTheme);
+
+// Patch fetchAndRenderPosts to re-apply post theme after rendering
+var origFetchAndRenderPosts = fetchAndRenderPosts;
+fetchAndRenderPosts = async function() {
+  await origFetchAndRenderPosts();
+  if (window._updatePostTheme) window._updatePostTheme();
+};
+    </script>
 </body>
 </html>

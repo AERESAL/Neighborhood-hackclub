@@ -35,37 +35,35 @@
 
 
         
-        {
+    {
         "name": "Gelato",
         "color": "#FC88A7",
         "color2": "#FCC99C",
         "color3": "#D8FCB1",
-        "textColor": "#000000",
-        "accents": "#ff5722",  
+        "textColor": "#6F3B2B", 
+        "accents": "#D83F4F",
         "background": "https://lh3.googleusercontent.com/pw/AP1GczMzzsQc8SDDYktOuDxacJgBEXMb32d1VNfVuJiWFJvMuqej9CaUsO6rtwr6p8IULidv6Kfp702QrDDsZenAJ_X8_SEpw-zBqjBHGgJVb6I9xUl_DKxuXS-H2Vt3DplYz3OVl3ug7dGi40D8cOpZrL0=w1461-h974-s-no-gm?authuser=0"
-        },
-        {
+    },
+    {
         "name": "Terracotta",
         "color": "#985F48",
         "color2": "#6F663D",
         "color3": "#E7E4D3",
-        "textColor": "#000000",
-        "accents": "#ff5722",  
+        "textColor": "#4F382C", 
+        "accents": "#C07855",
         "background": "https://lh3.googleusercontent.com/pw/AP1GczP-RHYbOpR9TAlHvdPUUPQNBYnj-B3BLt0WyiMAm-0DAjgCWc7C_s7h3L7x0260leJ9zSkXvgLpVc5bQ8DPDjfA2bV10kPLyb9Ld2srwgqmytJQjNTWgko3-kEd-BeEwW9QhB8KaIAYPCnd98Aghn0=w1458-h972-s-no-gm?authuser=2"
-        },
-        {
+    },
+    {
         "name": "Eclipse",
         "color": "#00011E",
         "color2": "#495880",
         "color3": "#D0D4DD",
-        "textColor": "#ffffff",
-        "accents": "#ff5722",
+        "textColor": "#C6C8D1", 
+        "accents": "#576BAA",
         "background": "https://lh3.googleusercontent.com/pw/AP1GczPj9npU6eaHX3pzs5_9DEA72C-MHyiynuAyZeqy_UtRLvZE47DFW357LOkDYUOXNmhQg9rrzbntryr7gqJIwIa6e3maWYUoP3wRB7NbOP0GGyFJVMPwWRcuEX0WfQyEDdMLyacwRKbwaa6YGRMjHmQ=w972-h972-s-no-gm?authuser=2"
-        }
+    }
 
 
         
     ]
 }
-
-

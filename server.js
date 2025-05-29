@@ -7,6 +7,7 @@ const path = require("path");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
 const multer = require('multer');
+const { getStorage } = require('firebase-admin/storage');
 require('dotenv').config();
 
 // Load service account from environment variable or fallback to serviceAccountKey.json
@@ -576,10 +577,10 @@ app.delete('/activities/:id', authenticateJWT, async (req, res) => {
   }
 });
 
-// Set up multer for image uploads
+// Use memory storage for multer (for Firebase Storage upload)
 const upload = multer({
-  dest: path.join(__dirname, 'public', 'uploads'),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files are allowed!'));
@@ -608,7 +609,17 @@ app.post('/api/community-posts', upload.single('image'), async (req, res) => {
     if (!content || !author) return res.status(400).json({ message: 'Missing content or author.' });
     let imageUrl = null;
     if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
+      // Upload to Firebase Storage
+      const bucket = getStorage().bucket();
+      const fileName = `community-posts/${Date.now()}_${req.file.originalname}`;
+      const file = bucket.file(fileName);
+      await file.save(req.file.buffer, {
+        metadata: { contentType: req.file.mimetype },
+        public: true
+      });
+      // Make file public and get URL
+      await file.makePublic();
+      imageUrl = file.publicUrl();
     }
     const post = {
       id: Date.now().toString(),
@@ -642,6 +653,67 @@ app.delete('/api/community-posts/:id', (req, res) => {
 
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
+// --- Friends API (Firestore-backed) ---
+// GET /api/friends/search?query=xxx&username=yyy
+app.get('/api/friends/search', async (req, res) => {
+  const { query, username } = req.query;
+  if (!query) return res.json({ users: [] });
+  try {
+    // Fetch all users from Firestore
+    const usersSnap = await db.collection('users').get();
+    const allUsers = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
+    // Exclude self and already-friends
+    let friends = [];
+    if (username) {
+      const userDoc = await db.collection('users').where('username', '==', username).get();
+      if (!userDoc.empty) {
+        friends = userDoc.docs[0].data().friends || [];
+      }
+    }
+    const results = allUsers.filter(u => u.toLowerCase().includes(query.toLowerCase()) && u !== username && !friends.includes(u));
+    res.json({ users: results });
+  } catch (err) {
+    res.status(500).json({ users: [], error: err.message });
+  }
+});
+
+// GET /api/friends?username=xxx
+app.get('/api/friends', async (req, res) => {
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ friends: [] });
+  try {
+    const userDoc = await db.collection('users').where('username', '==', username).get();
+    if (userDoc.empty) return res.json({ friends: [] });
+    const friends = userDoc.docs[0].data().friends || [];
+    res.json({ friends });
+  } catch (err) {
+    res.status(500).json({ friends: [], error: err.message });
+  }
+});
+
+// POST /api/friends/add
+app.post('/api/friends/add', express.json(), async (req, res) => {
+  const { username, friend } = req.body;
+  if (!username || !friend) return res.status(400).json({ message: 'Missing username or friend.' });
+  if (username === friend) return res.status(400).json({ message: 'Cannot add yourself.' });
+  try {
+    // Check both users exist
+    const userSnap = await db.collection('users').where('username', '==', username).get();
+    const friendSnap = await db.collection('users').where('username', '==', friend).get();
+    if (userSnap.empty || friendSnap.empty) return res.status(404).json({ message: 'User not found.' });
+    const userRef = userSnap.docs[0].ref;
+    const userData = userSnap.docs[0].data();
+    const friends = userData.friends || [];
+    if (friends.includes(friend)) return res.status(400).json({ message: 'Already friends.' });
+    friends.push(friend);
+    await userRef.update({ friends });
+    res.json({ message: 'Friend added.', friend });
+  } catch (err) {
+    res.status(500).json({ message: 'Error adding friend.', error: err.message });
+  }
+});
+// --- End Friends API ---
 
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

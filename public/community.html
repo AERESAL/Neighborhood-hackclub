@@ -55,20 +55,36 @@
                 <h2 class="text-3xl font-bold text-gray-800 mb-4">Community</h2>
                 <p class="text-gray-700">Welcome to the VolunteerHub Community page! Here you can connect with other volunteers, share your experiences, and find new opportunities to get involved.</p>
                 <!-- Posts Section -->
-                <section id="postsSection" class="mt-8">
-                  <h3 class="text-2xl font-semibold text-gray-800 mb-4">Posts</h3>
-                  <div id="postsList" class="space-y-4">
-                    <div class="bg-gray-100 rounded p-4 shadow">
-                      <div class="font-bold text-lg text-gray-700">Welcome to the Community!</div>
-                      <div class="text-gray-600 mt-1">Introduce yourself and share your volunteering stories here.</div>
-                      <div class="text-xs text-gray-400 mt-2">VolunteerHub Team • May 29, 2025</div>
+                <section id="postsSection" class="mt-8 flex flex-row gap-8 relative">
+                  <div class="flex-1 min-w-0 pr-[320px]"> <!-- Added right padding to prevent overlap with friends sidebar -->
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Posts</h3>
+                    <div id="postsList" class="space-y-4">
+                      <div class="bg-gray-100 rounded p-4 shadow">
+                        <div class="font-bold text-lg text-gray-700">Welcome to the Community!</div>
+                        <div class="text-gray-600 mt-1">Introduce yourself and share your volunteering stories here.</div>
+                        <div class="text-xs text-gray-400 mt-2">VolunteerHub Team • May 29, 2025</div>
+                      </div>
                     </div>
+                    <form id="addPostForm" class="mt-6 flex flex-col gap-2">
+                      <textarea id="postContent" class="border rounded px-3 py-2" rows="3" placeholder="Share something with the community..." required></textarea>
+                      <input type="file" accept="image/*" id="postImage" class="border rounded px-3 py-2">
+                      <button type="submit" class="self-end px-4 py-2 bg-blue-600 text-white rounded">Post</button>
+                    </form>
                   </div>
-                  <form id="addPostForm" class="mt-6 flex flex-col gap-2">
-                    <textarea id="postContent" class="border rounded px-3 py-2" rows="3" placeholder="Share something with the community..." required></textarea>
-                    <input type="file" accept="image/*" id="postImage" class="border rounded px-3 py-2">
-                    <button type="submit" class="self-end px-4 py-2 bg-blue-600 text-white rounded">Post</button>
-                  </form>
+                  <!-- Friends Sidebar -->
+                  <aside id="friendsSidebar" class="w-64 flex-shrink-0 bg-white bg-opacity-90 rounded-md shadow-md p-4 h-[500px] max-h-[80vh] overflow-y-auto fixed right-12 top-[120px] z-40 border border-gray-200">
+                    <h4 class="text-xl font-bold text-gray-700 mb-3">Friends</h4>
+                    <form id="addFriendForm" class="mb-4 flex gap-2">
+                      <input type="text" id="friendSearchInput" class="border rounded px-2 py-1 flex-1" placeholder="Search username..." autocomplete="off">
+                      <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">Add</button>
+                    </form>
+                    <ul class="space-y-3" id="friendsList">
+                      <li class="flex items-center gap-3"><span class="w-3 h-3 bg-green-400 rounded-full inline-block"></span> <span class="font-medium">Alice</span></li>
+                      <li class="flex items-center gap-3"><span class="w-3 h-3 bg-green-400 rounded-full inline-block"></span> <span class="font-medium">Bob</span></li>
+                      <li class="flex items-center gap-3"><span class="w-3 h-3 bg-gray-400 rounded-full inline-block"></span> <span class="font-medium">Charlie</span></li>
+                    </ul>
+                    <div id="friendSearchResults" class="mt-2"></div>
+                  </aside>
                 </section>
                 <!-- End Posts Section -->
             </div>
@@ -197,6 +213,82 @@ if (addPostForm) {
     form.insertBefore(fileInput, form.querySelector('button'));
   }
 })();
+
+// --- Friends Add/Search Logic (API-backed) ---
+const currentUser = localStorage.getItem('username') || '';
+
+async function fetchFriends() {
+  if (!currentUser) return;
+  const res = await fetch(`${API_URL}/api/friends?username=${encodeURIComponent(currentUser)}`);
+  const data = await res.json();
+  renderFriends(data.friends || []);
+}
+
+function renderFriends(friendsArr) {
+  const ul = document.getElementById('friendsList');
+  ul.innerHTML = '';
+  (friendsArr || []).forEach(friend => {
+    ul.innerHTML += `<li class="flex items-center gap-3"><span class="w-3 h-3 bg-green-400 rounded-full inline-block"></span> <span class="font-medium">${friend}</span></li>`;
+  });
+}
+
+async function searchFriends(query) {
+  if (!query) return [];
+  const res = await fetch(`${API_URL}/api/friends/search?query=${encodeURIComponent(query)}&username=${encodeURIComponent(currentUser)}`);
+  const data = await res.json();
+  return data.users || [];
+}
+
+document.getElementById('addFriendForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const input = document.getElementById('friendSearchInput');
+  const username = input.value.trim();
+  if (!username) return;
+  // Add friend via API
+  const res = await fetch(`${API_URL}/api/friends/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: currentUser, friend: username })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data.message || 'Failed to add friend');
+    return;
+  }
+  fetchFriends();
+  input.value = '';
+  document.getElementById('friendSearchResults').innerHTML = '';
+});
+
+document.getElementById('friendSearchInput').addEventListener('input', async function(e) {
+  const query = e.target.value.trim();
+  const results = await searchFriends(query);
+  const resultsDiv = document.getElementById('friendSearchResults');
+  if (results.length === 0) {
+    resultsDiv.innerHTML = '';
+    return;
+  }
+  resultsDiv.innerHTML = '<div class="bg-gray-100 rounded p-2 shadow text-sm">' + results.map(name => `<div class=\"py-1 cursor-pointer hover:bg-blue-100 px-2 rounded\" onclick=\'addSearchedFriend(\"${name}\")\'>${name}</div>`).join('') + '</div>';
+});
+
+window.addSearchedFriend = async function(name) {
+  // Add friend via API
+  const res = await fetch(`${API_URL}/api/friends/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: currentUser, friend: name })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data.message || 'Failed to add friend');
+    return;
+  }
+  fetchFriends();
+  document.getElementById('friendSearchInput').value = '';
+  document.getElementById('friendSearchResults').innerHTML = '';
+};
+
+fetchFriends();
 
 // Initial load
 window.addEventListener('DOMContentLoaded', fetchAndRenderPosts);

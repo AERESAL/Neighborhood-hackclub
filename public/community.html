@@ -54,7 +54,23 @@
             <div class="bg-white bg-opacity-80 rounded-md shadow-md p-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-4">Community</h2>
                 <p class="text-gray-700">Welcome to the VolunteerHub Community page! Here you can connect with other volunteers, share your experiences, and find new opportunities to get involved.</p>
-                <!-- Add more community features here -->
+                <!-- Posts Section -->
+                <section id="postsSection" class="mt-8">
+                  <h3 class="text-2xl font-semibold text-gray-800 mb-4">Posts</h3>
+                  <div id="postsList" class="space-y-4">
+                    <div class="bg-gray-100 rounded p-4 shadow">
+                      <div class="font-bold text-lg text-gray-700">Welcome to the Community!</div>
+                      <div class="text-gray-600 mt-1">Introduce yourself and share your volunteering stories here.</div>
+                      <div class="text-xs text-gray-400 mt-2">VolunteerHub Team • May 29, 2025</div>
+                    </div>
+                  </div>
+                  <form id="addPostForm" class="mt-6 flex flex-col gap-2">
+                    <textarea id="postContent" class="border rounded px-3 py-2" rows="3" placeholder="Share something with the community..." required></textarea>
+                    <input type="file" accept="image/*" id="postImage" class="border rounded px-3 py-2">
+                    <button type="submit" class="self-end px-4 py-2 bg-blue-600 text-white rounded">Post</button>
+                  </form>
+                </section>
+                <!-- End Posts Section -->
             </div>
         </main>
     </div>
@@ -83,6 +99,107 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, 0);
 });
+
+const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:3000"
+  : "https://neighborhood-liard.vercel.app";
+
+// Fetch and render posts
+async function fetchAndRenderPosts() {
+  const postsList = document.getElementById('postsList');
+  postsList.innerHTML = '<div class="text-gray-400">Loading posts...</div>';
+  try {
+    const res = await fetch(`${API_URL}/api/community-posts`);
+    const data = await res.json();
+    postsList.innerHTML = '';
+    if (!data.posts || data.posts.length === 0) {
+      postsList.innerHTML = '<div class="text-gray-400">No posts yet.</div>';
+      return;
+    }
+    data.posts.forEach(post => {
+      const div = document.createElement('div');
+      div.className = 'bg-gray-100 rounded p-4 shadow';
+      let canDelete = false;
+      const currentUser = localStorage.getItem('username') || '';
+      if (post.author && post.author === currentUser) canDelete = true;
+      // Fix image URL to be absolute if needed
+      let imageUrl = post.imageUrl;
+      if (imageUrl && imageUrl.startsWith('/uploads/')) {
+        imageUrl = `${API_URL}${imageUrl}`;
+      }
+      div.innerHTML = `
+        <div class="font-bold text-lg text-gray-700">${post.author || 'Anonymous'}</div>
+        <div class="text-gray-600 mt-1">${post.content}</div>
+        ${imageUrl ? `<img src="${imageUrl}" alt="Post image" class="mt-2 max-h-60 rounded shadow" style="max-width:100%">` : ''}
+        <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
+        ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
+      `;
+      postsList.appendChild(div);
+    });
+    // Attach delete handlers
+    document.querySelectorAll('.delete-post-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        if (!confirm('Delete this post?')) return;
+        const postId = this.getAttribute('data-id');
+        const username = localStorage.getItem('username') || '';
+        try {
+          const res = await fetch(`${API_URL}/api/community-posts/${postId}?username=${encodeURIComponent(username)}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete');
+          fetchAndRenderPosts();
+        } catch (err) {
+          alert('Failed to delete post.');
+        }
+      });
+    });
+  } catch (err) {
+    postsList.innerHTML = '<div class="text-red-500">Failed to load posts.</div>';
+  }
+}
+
+// Handle new post submission
+const addPostForm = document.getElementById('addPostForm');
+if (addPostForm) {
+  addPostForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const postContent = document.getElementById('postContent').value.trim();
+    const author = localStorage.getItem('username') || 'Anonymous';
+    const imageInput = document.getElementById('postImage');
+    const formData = new FormData();
+    formData.append('content', postContent);
+    formData.append('author', author);
+    if (imageInput && imageInput.files[0]) {
+      formData.append('image', imageInput.files[0]);
+    }
+    try {
+      const res = await fetch(`${API_URL}/api/community-posts`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Failed to post');
+      addPostForm.reset();
+      fetchAndRenderPosts();
+    } catch (err) {
+      alert('Failed to post.');
+    }
+  });
+}
+
+// Add image upload field to the form
+(function addImageField() {
+  const form = document.getElementById('addPostForm');
+  if (form && !document.getElementById('postImage')) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.id = 'postImage';
+    fileInput.className = 'border rounded px-3 py-2';
+    fileInput.style.marginTop = '4px';
+    form.insertBefore(fileInput, form.querySelector('button'));
+  }
+})();
+
+// Initial load
+window.addEventListener('DOMContentLoaded', fetchAndRenderPosts);
 </script>
 </body>
 </html>

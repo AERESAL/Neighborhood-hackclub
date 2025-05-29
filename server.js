@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
+const multer = require('multer');
 require('dotenv').config();
 
 // Load service account from environment variable or fallback to serviceAccountKey.json
@@ -574,6 +575,73 @@ app.delete('/activities/:id', authenticateJWT, async (req, res) => {
     res.status(500).json({ message: 'Error deleting activity.', error: err.message });
   }
 });
+
+// Set up multer for image uploads
+const upload = multer({
+  dest: path.join(__dirname, 'public', 'uploads'),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed!'));
+    }
+    cb(null, true);
+  }
+});
+
+// In-memory posts fallback (for demo, replace with Firestore for production)
+let communityPosts = [];
+
+// GET /api/community-posts - Get all posts
+app.get('/api/community-posts', async (req, res) => {
+  try {
+    // TODO: Replace with Firestore fetch
+    res.json({ posts: communityPosts });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch posts.' });
+  }
+});
+
+// POST /api/community-posts - Create a new post (with optional image)
+app.post('/api/community-posts', upload.single('image'), async (req, res) => {
+  try {
+    const { content, author } = req.body;
+    if (!content || !author) return res.status(400).json({ message: 'Missing content or author.' });
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+    const post = {
+      id: Date.now().toString(),
+      content,
+      author,
+      imageUrl,
+      createdAt: new Date().toISOString()
+    };
+    // TODO: Replace with Firestore save
+    communityPosts.unshift(post);
+    res.status(201).json({ post });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to create post.' });
+  }
+});
+
+// DELETE /api/community-posts/:id - Delete a post by ID (only by author)
+app.delete('/api/community-posts/:id', (req, res) => {
+  const postId = req.params.id;
+  // Accept username from query, body, or headers
+  const username = req.query.username || req.body?.username || req.headers['x-username'] || req.headers['username'] || '';
+  // Find the post
+  const idx = communityPosts.findIndex(p => p.id === postId);
+  if (idx === -1) return res.status(404).json({ message: 'Post not found.' });
+  if (!username || communityPosts[idx].author !== username) {
+    return res.status(403).json({ message: 'Not authorized to delete this post.' });
+  }
+  communityPosts.splice(idx, 1);
+  res.json({ message: 'Post deleted.' });
+});
+
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

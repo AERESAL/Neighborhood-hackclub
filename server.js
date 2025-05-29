@@ -45,7 +45,7 @@ app.use(cors({
     "https://neighborhood-liard.vercel.app"
   ],
   credentials: true,
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"], // Add DELETE and PUT
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
@@ -243,6 +243,7 @@ app.post('/activities', authenticateJWT, async (req, res) => {
       activitiesArr = data.activities || [];
     }
     const newActivity = {
+      id: uuidv4(), // Add unique id to each activity
       name,
       date,
       start_time,
@@ -311,6 +312,7 @@ app.get("/dashboard.html", (req, res) => {
 app.get('/activities/:username', authenticateJWT, async (req, res) => {
   try {
     const { username } = req.params;
+    await ensureActivityIdsForUser(username);
     const doc = await db.collection('activities').doc(username).get();
     if (!doc.exists) return res.status(200).json({ activities: [] });
     const data = doc.data();
@@ -523,6 +525,53 @@ app.get('/leaderboard', async (req, res) => {
   } catch (error) {
     console.error('Leaderboard error', error);
     res.status(500).json({ leaderboard: [] });
+  }
+});
+
+// Utility: Ensure all activities in the user's activities array have an id
+async function ensureActivityIdsForUser(username) {
+  const activitiesRef = db.collection('activities').doc(username);
+  const doc = await activitiesRef.get();
+  if (!doc.exists) return;
+  let activitiesArr = doc.data().activities || [];
+  let changed = false;
+  activitiesArr = activitiesArr.map(act => {
+    if (!act.id) {
+      changed = true;
+      return { ...act, id: uuidv4() };
+    }
+    return act;
+  });
+  if (changed) {
+    await activitiesRef.set({ activities: activitiesArr }, { merge: true });
+  }
+}
+
+// DELETE /activities/:id - Delete an activity by ID (requires authentication)
+app.delete('/activities/:id', authenticateJWT, async (req, res) => {
+  const activityId = req.params.id;
+  if (!activityId) {
+    return res.status(400).json({ message: 'Activity ID is required.' });
+  }
+  try {
+    await ensureActivityIdsForUser(req.username);
+    // Find the user's activities document
+    const activitiesRef = db.collection('activities').doc(req.username);
+    const doc = await activitiesRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'No activities found for user.' });
+    }
+    let activitiesArr = doc.data().activities || [];
+    const initialLength = activitiesArr.length;
+    // Remove the activity with the matching id
+    activitiesArr = activitiesArr.filter(act => act.id !== activityId);
+    if (activitiesArr.length === initialLength) {
+      return res.status(404).json({ message: 'Activity not found.' });
+    }
+    await activitiesRef.set({ activities: activitiesArr }, { merge: true });
+    res.json({ message: 'Activity deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting activity.', error: err.message });
   }
 });
 

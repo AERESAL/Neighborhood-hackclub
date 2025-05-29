@@ -471,6 +471,61 @@ app.put('/users', authenticateJWT, async (req, res) => {
   }
 });
 
+// Leaderboard endpoint: returns top users by approved (signed) hours
+app.get('/leaderboard', async (req, res) => {
+  try {
+    const snapshot = await db.collection('activities').get();
+    const users = [];
+    for (const doc of snapshot.docs) {
+      const username = doc.id;
+      const activities = doc.data().activities || [];
+      let approvedHours = 0;
+      let unapprovedHours = 0;
+      for (const act of activities) {
+        // Calculate hours for each activity
+        let hours = 0;
+        if (act.start_time && act.end_time) {
+          const [sh, sm] = act.start_time.split(':').map(Number);
+          const [eh, em] = act.end_time.split(':').map(Number);
+          let diff = (eh * 60 + em) - (sh * 60 + sm);
+          if (diff < 0) diff += 24 * 60; // handle overnight
+          hours = diff / 60;
+        }
+        if (act.signed) {
+          approvedHours += hours;
+        } else {
+          unapprovedHours += hours;
+        }
+      }
+      users.push({ username, approvedHours, unapprovedHours });
+    }
+    // Sort by approvedHours descending
+    users.sort((a, b) => b.approvedHours - a.approvedHours);
+    // Optionally, get display names from users collection
+    const leaderboard = [];
+    for (const user of users) {
+      let displayName = user.username;
+      try {
+        const userDoc = await db.collection('users').doc(user.username).get();
+        if (userDoc.exists) {
+          const d = userDoc.data();
+          if (d.firstName || d.lastName) displayName = `${d.firstName || ''} ${d.lastName || ''}`.trim() || user.username;
+        }
+      } catch {}
+      leaderboard.push({
+        username: user.username,
+        displayName,
+        approvedHours: Math.round(user.approvedHours * 100) / 100,
+        unapprovedHours: Math.round(user.unapprovedHours * 100) / 100
+      });
+    }
+    res.json({ leaderboard });
+  } catch (error) {
+    console.error('Leaderboard error', error);
+    res.status(500).json({ leaderboard: [] });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
 

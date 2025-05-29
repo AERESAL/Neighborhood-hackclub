@@ -1,0 +1,44 @@
+<!-- Modal Trigger Button -->
+<button id="openModalBtn">Add Activity</button>
+
+<!-- Modal Structure -->
+<div id="activityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:8px; padding:2rem; max-width:400px; margin:auto; position:relative;">
+    <button id="closeModalBtn" style="position:absolute; top:10px; right:15px; font-size:1.5rem; background:none; border:none;">&times;</button>
+    <form id="activityForm">
+      <h2>Add Activity</h2>
+      <input type="text" placeholder="Title" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="text" placeholder="Place" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="date" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="time" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="time" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="text" placeholder="Supervisor Name" required style="display:block; margin-bottom:10px; width:100%;">
+      <input type="email" placeholder="Supervisor Email" required style="display:block; margin-bottom:10px; width:100%;">
+      <button type="submit" style="background:green; color:white; padding:0.5rem 1rem; border-radius:4px;">Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Get elements
+const openModalBtn = document.getElementById('addActivityBtn');
+const activityModal = document.getElementById('activityModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+
+// Open modal
+openModalBtn.addEventListener('click', () => {
+  activityModal.style.display = 'flex';
+});
+
+// Close modal on X button
+closeModalBtn.addEventListener('click', () => {
+  activityModal.style.display = 'none';
+});
+
+// Close modal when clicking outside the form
+activityModal.addEventListener('click', (e) => {
+  if (e.target === activityModal) {
+    activityModal.style.display = 'none';
+  }
+});
+</script>

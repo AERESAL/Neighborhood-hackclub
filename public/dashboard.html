@@ -6,13 +6,41 @@
     <title>VolunteerHub Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --accent: #2563eb; /* Default accent, will be overridden by JS theme logic */
+            --color2: #22d3ee; /* Default color2, will be overridden by JS theme logic */
+        }
+        button, .btn, .accent-btn {
+            background: var(--accent, #2563eb);
+            color: #fff;
+            border: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:hover, .btn:hover, .accent-btn:hover {
+            background: #1e40af;
+            color: #fff;
+        }
+        /* For outlined accent buttons */
+        .btn-outline, .accent-btn-outline {
+            background: transparent;
+            color: var(--accent, #2563eb);
+            border: 2px solid var(--accent, #2563eb);
+        }
+        .btn-outline:hover, .accent-btn-outline:hover {
+            background: var(--accent, #2563eb);
+            color: #fff;
+        }
+
         .container {
             width: 75vw;
             height: 75vh;
             position: relative;
             margin: auto;
-            border: 2px solid gray;
-            background-color: rgba(200, 200, 200, 0.4); /* Increased opacity for more transparency */
+            background-color: rgba(0,0,0,0.05); /* 5% opacity black background for subtle separation */
+            backdrop-filter: blur(.5px); /* Add blur for glassy look */
+            -webkit-backdrop-filter: blur(.5px); /* Safari support */
+            border: none;
+            overflow: visible;
         }
 
         .widget {
@@ -28,9 +56,10 @@
             resize: none;
             overflow: auto;
             min-width: 180px;
-            min-height: 120px;
-            max-width: 100%;
-            max-height: 100%;
+            min-height: 180px;
+            max-width: calc(100vw - 8rem); /* Prevents widget from going off the right edge */
+            max-height: calc(100vh - 10rem); /* Prevents widget from going off the bottom edge */
+            box-sizing: border-box;
         }
 
         .container > .widget {
@@ -119,10 +148,39 @@
   -ms-user-select: none;
 }
 .greeting-container, main > div.bg-black {
-            background: rgba(0, 0, 0, 0.6) !important; /* More opacity for greeting/title card */
+            background: rgba(0, 0, 0, 0.6); /* Remove !important so JS can override */
             backdrop-filter: blur(12px);
         }
+        /* Sidebar themed icons use color2 */
+        aside .themed-icon {
+            color: var(--color2, #22d3ee);
+            z-index: 2;
+            position: relative;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 40px;
+            max-height: 40px;
+            display: inline-block;
+            vertical-align: middle;
+            opacity: 1;
+            visibility: visible;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.08); /* Subtle background for icon contrast */
+            box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07);
+        }
+        /* Remove fill/stroke from path/use, let SVG inherit color via currentColor */
+        /* Remove fallback !important sizing unless needed for layout */
+        /* Remove JS that forcibly sets fill/stroke/color on SVGs */
+        #sidebarSettingsBtn, #sidebarPrintBtn {
+            color: inherit;
+            background: transparent;
+            z-index: 2;
+            position: relative;
+        }
     </style>
+    <!-- Remove all JS that forcibly sets fill/stroke/color on sidebar SVGs -->
 </head>
 <body class="bg-gray-100 flex flex-col h-screen">
     <!-- Background Video -->
@@ -159,11 +217,21 @@
             </nav>
 
             <div class="flex items-center justify-center gap-4 mb-4 px-6">
-                <button id="sidebarSettingsBtn" class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
-                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" class="themed-icon"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
+                <button id="sidebarSettingsBtn" class="w-10 h-10" style="padding-bottom: 10px;">
+                    <!-- Remade SVG: simple gear/settings icon, accessible, using currentColor -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
+                        <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
+                        <path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                    </svg>
                 </button>
-                <button id="sidebarPrintBtn" class="w-10 h-10 text-gray-600 hover:text-gray-800" style="padding-bottom: 10px;">
-                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" class="themed-icon"><path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/></svg>
+                <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px;">
+                    <!-- Remade SVG: simple print icon, accessible, using currentColor -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
+                        <rect x="6" y="9" width="12" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <rect x="8" y="16" width="8" height="4" rx="1" fill="currentColor"/>
+                        <rect x="6" y="3" width="12" height="4" rx="1" fill="currentColor"/>
+                        <circle cx="17" cy="12.5" r="1" fill="currentColor"/>
+                    </svg>
                 </button>
             </div>
         </aside>
@@ -172,7 +240,7 @@
         <!-- Main Content with Movable Widgets -->
         <main class="flex-1 p-6 ml-64 relative mt-[64px]">
             <!-- Greeting Container -->
-            <div class="bg-black bg-opacity-50 text-white p-6 rounded-md shadow-md relative greeting-container">
+            <div id="greetingContainer" class="bg-black bg-opacity-50 text-white p-6 rounded-md shadow-md relative greeting-container">
                 <button id="editButton" class="absolute top-4 right-4 p-2 rounded-full transition-colors" title="Edit Widgets" style="background: var(--accent, #2563eb);">
                   <svg id="editIcon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"/></svg>
                 </button>
@@ -200,7 +268,18 @@
 </div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget3">
   <div class="corner-br"></div>
-  Widget 3
+  <div class="text-lg font-semibold mb-1">Hours Breakdown</div>
+  <canvas id="hoursPieChart" width="180" height="180" style="margin:0 auto;display:block;"></canvas>
+  <div class="flex items-center justify-center mt-2">
+    <span style="display:inline-flex;align-items:center;margin-right:12px;">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4ade80;margin-right:5px;"></span>
+      <span style="font-size:12px;">Approved</span>
+    </span>
+    <span style="display:inline-flex;align-items:center;">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f87171;margin-right:5px;"></span>
+      <span style="font-size:12px;">Unapproved</span>
+    </span>
+  </div>
 </div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget4">
   <div class="corner-br"></div>
@@ -289,16 +368,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
-// Apply theme color to all .themed-icon SVGs
-function applyThemedIcons(color) {
-  document.querySelectorAll('.themed-icon').forEach(svg => {
-    svg.style.color = color;
-    svg.setAttribute('fill', color);
-    svg.querySelectorAll('path').forEach(path => path.setAttribute('fill', color));
-  });
-}
-// Listen for theme changes (dashboard-theme.js should call this after applying theme)
-window.applyThemedIcons = applyThemedIcons;
-</script>
+// Remove all JS that forcibly sets fill/stroke/color on sidebar SVGs
+// Fix: Remove applyThemedIcons and all direct fill/color setting for .themed-icon SVGs
+// Sidebar SVGs should only use CSS for color, and SVGs must use fill="currentColor"
+    </script>
 </body>
 </html>

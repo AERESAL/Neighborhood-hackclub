@@ -718,3 +718,4 @@ app.post('/api/friends/add', express.json(), async (req, res) => {
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
 
+

@@ -96,7 +96,7 @@ function applyDashboardTheme(theme) {
         });
     }
     // Title card (greeting container)
-    var greetingCard = document.querySelector('.bg-black.bg-opacity-50.text-white.p-6.rounded-md.shadow-md.relative');
+    var greetingCard = document.getElementById('greetingContainer');
     if (greetingCard) {
         // Use theme.color2 for the background, with lighter opacity
         greetingCard.style.background = hexToRgba(theme.color2 || '#ffffff', 0.5); // 50% opacity for lighter look
@@ -108,9 +108,9 @@ function applyDashboardTheme(theme) {
     }
     // Widgets
     document.querySelectorAll('.widget').forEach(function(widget) {
-        widget.style.background = (theme.color3 || theme.color2 || '') + (theme.color3 ? 'CC' : 'CC'); // Add ~80% opacity
+        widget.style.background = hexToRgba(theme.color || '#ffffff', 0.5); // Use color 1 with 10% opacity
         widget.style.color = theme.textColor || '';
-        widget.style.backdropFilter = 'blur(2px)';
+        widget.style.backdropFilter = 'blur(12px)'; // Stronger blur for glassy look
         widget.querySelectorAll('*').forEach(function(el) {
             el.style.color = theme.textColor || '';
         });
@@ -139,8 +139,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndApplyDashboardTheme();
 });
 
-// Helper to convert hex to rgba
+// Helper to convert hex/rgb/rgba to rgba with alpha
 function hexToRgba(hex, alpha) {
+    if (!hex) return '';
+    if (hex.startsWith('rgba')) {
+        // Replace alpha
+        return hex.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, `rgba($1,$2,$3,${alpha})`);
+    }
+    if (hex.startsWith('rgb')) {
+        // Convert rgb to rgba
+        return hex.replace(/rgb\(([^,]+),([^,]+),([^,]+)\)/, `rgba($1,$2,$3,${alpha})`);
+    }
     hex = hex.replace('#', '');
     if (hex.length === 3) {
         hex = hex.split('').map(x => x + x).join('');

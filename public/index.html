@@ -1,339 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VolunteerHub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        html, body {
-            scroll-snap-type: y proximity;
-            overflow-y: auto;
-            height: 100vh;
-        }
-
-
-        section {
-            height: 100vh;
-            scroll-snap-align: start;
-        }
-
-        /* Background animation */
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @media (max-width: 768px) {
-        .title-text {
-            font-size: 10vw; /* Scales dynamically with screen width */
-            width: 100%; /* Ensures it spans the screen */
-            padding: 10px; /* Adds breathing room */
-            text-align: center; /* Keeps it visually balanced */
-        }
-        .features-container {
-            display: flex;
-            flex-direction: column; /* Stacks features in a single column */
-            align-items: center; /* Keeps them visually centered */
-            gap: 20px; /* Creates spacing between cards */
-        }
-
-        }
-        
-        body {
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569);
-            background-size: 400% 400%;
-            animation: gradientBG 15s infinite;
-        }
-
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .custom-btn {
-            transition: all 0.5s;
-            font-size: 17px;
-            padding: 1ch 2ch;
-            background-color: #fff;
-            color: #000;
-            cursor: pointer;
-            border: none;
-            border-radius: 2px;
-            box-shadow:
-                2px 2px 0px hsl(0, 0%, 90%),
-                4px 4px 0px hsl(0, 0%, 80%),
-                6px 6px 0px hsl(0, 0%, 70%),
-                8px 8px 0px hsl(0, 0%, 60%),
-                10px 10px 0px hsl(0, 0%, 50%),
-                12px 12px 0px hsl(0, 0%, 40%),
-                14px 14px 0px hsl(0, 0%, 30%),
-                16px 16px 0px hsl(0, 0%, 20%),
-                18px 18px 0px hsl(0, 0%, 10%);
-        }
-
-        .custom-btn:hover {
-            background-color: hsl(0, 0%, 50%);
-            color: #fff;
-            box-shadow: none;
-        }
-
-        .card {
-            position: relative;
-            width: 220px;
-            height: 280px;
-            background-color: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: end;
-            padding: 16px;
-            gap: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            left: -5px;
-            margin: auto;
-            width: 230px;
-            height: 290px;
-            border-radius: 10px;
-            background: linear-gradient(-45deg, #e81cff 0%, #40c9ff 100%);
-            z-index: -10;
-            pointer-events: none;
-            transition: all 0.6s ease-in-out;
-        }
-
-        .card::after {
-            content: "";
-            z-index: -1;
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(-45deg, #fc00ff 0%, #00dbde 100%);
-            transform: translate3d(0, 0, 0) scale(0.95);
-            filter: blur(20px);
-        }
-
-        .heading {
-            font-size: 22px;
-            font-weight: 700;
-            color: #e81cff;
-        }
-
-        .card p {
-            font-size: 14px;
-            color: white;
-            position: relative;
-            z-index: 10;
-        }
-
-        .card:hover::after {
-            filter: blur(30px);
-        }
-
-        .card:hover::before {
-            transform: rotate(-90deg) scaleX(1.34) scaleY(0.77);
-        }
-        
-        .icon-glow {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100px; /* Adjusted to make icons larger */
-        }
-
-        .icon-glow svg {
-            width: 50px;
-            height: 50px;
-            filter: drop-shadow(0 0 8px rgba(232, 160, 255, 1));
-            transition: filter 0.3s ease-in-out;
-        }
-
-        .card:hover .icon-glow svg {
-            filter: drop-shadow(0 0 12px rgba(232, 160, 255, 1));
-        }
-
-        #features {
-            position: relative;
-            z-index: 1; /* Makes sure it doesn't block elements */
-        }
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VolunteerHub | Neighborhood Hackclub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Lexend Deca', 'Montserrat', Arial, sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .hero-bg {
+      display: none;
+    }
+    .glass {
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+    }
+    .accent {
+      color: #2563eb;
+    }
+    .btn-main {
+      background: linear-gradient(90deg, #4f8cff 0%, #22d3ee 100%);
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 36px;
+      font-size: 1.2rem;
+      box-shadow: 0 2px 8px #4f8cff22;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .btn-main:hover {
+      background: linear-gradient(90deg, #2563eb 0%, #4f8cff 100%);
+      box-shadow: 0 4px 16px #4f8cff33;
+    }
+    .feature-icon {
+      width: 48px; height: 48px;
+      margin-bottom: 12px;
+      color: #4f8cff;
+    }
+    .social-icon {
+      width: 38px; height: 38px; margin: 0 8px; border-radius: 50%; transition: box-shadow 0.2s;
+    }
+    .social-icon:hover {
+      box-shadow: 0 2px 8px #4f8cff44;
+    }
+    @media (max-width: 900px) {
+      .hero-content { flex-direction: column; text-align: center; }
+      .hero-img { margin-bottom: 32px; }
+    }
+    @media (max-width: 600px) {
+      .hero-content { flex-direction: column; gap: 2rem; }
+      .hero-img { margin-bottom: 24px; }
+      .glass, .mt-20, .p-10, .max-w-5xl, .max-w-4xl {
+        padding: 1.2rem !important;
+        margin-top: 1.5rem !important;
+        max-width: 98vw !important;
+      }
+      h1, h2 {
+        font-size: 2rem !important;
+      }
+      .btn-main {
+        width: 100%;
+        padding: 12px 0;
+        font-size: 1rem;
+      }
+      .feature-icon {
+        width: 36px; height: 36px;
+      }
+      .social-icon {
+        width: 32px; height: 32px;
+      }
+    }
+  </style>
 </head>
-<body class="text-white font-sans">
-
-
-
-
-<!-- 🌟 Title Screen -->
-<section class="h-screen relative flex flex-col justify-center items-start text-left p-10">
-    <!-- Video Background -->
-    <video autoplay loop muted class="absolute top-0 left-0 w-full h-full object-cover">
-        <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
-    </video>
-
-    <!-- Overlay for better text visibility -->
-    <div class="absolute top-0 left-0 w-full h-full bg-black/50"></div>
-
-    <!-- Content -->
-    <div class="relative text-white">
-        <h1 class="text-7xl font-bold text-blue-500">VolunteerHub</h1> <!-- Bigger text -->
-        <p class="mt-4 text-xl">Made by highschoolers, for highschoolers</p>
-
-        <div class="mt-6 flex space-x-4">
-            <button onclick="document.getElementById('about').scrollIntoView({ behavior: 'smooth' })" class="custom-btn">Learn More</button>
-            <button onclick="window.location.href='signup.html'" class="custom-btn">Sign Up</button>
-        </div>
+<body>
+  <header class="w-full flex items-center justify-between px-8 py-6 bg-white bg-opacity-80 shadow-md fixed top-0 left-0 z-50">
+    <div class="flex items-center gap-3">
+      <img src="https://placehold.co/60x60" alt="VolunteerHub Logo" class="rounded-full shadow-md" style="width:48px;height:48px;">
+      <span class="text-2xl font-bold accent tracking-tight">VolunteerHub</span>
     </div>
-</section>
-
-
-
-
-<!-- 🔗 Navigation -->
-<header class="fixed top-0 w-full bg-gray-800 p-4 flex justify-between items-center shadow-md">
-    <!-- Left side: Logo -->
-    <div class="text-2xl font-bold">VolunteerHub</div>
-    <!-- Right side: Navigation Links & Buttons -->
-    <nav class="hidden md:flex space-x-6 items-center">
-        <a href="#about" class="hover:text-gray-400">About</a>
-        <a href="#features" class="hover:text-gray-400">Features</a>
-        <a href="#how-it-works" class="hover:text-gray-400">How It Works</a>
-        <button onclick="window.location.href='signup.html'" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">Sign Up</button>
-        <button onclick="window.location.href='login.html'" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Login</button>
+    <nav class="hidden md:flex gap-8 text-lg font-medium">
+      <a href="login.html" class="hover:text-blue-600 transition">Login</a>
+      <a href="signup.html" class="hover:text-blue-600 transition">Sign Up</a>
     </nav>
-    <!-- Mobile Hamburger Menu -->
-    <div class="md:hidden text-2xl cursor-pointer" onclick="toggleMenu()">☰</div>
-</header>
-
-<!-- Mobile Dropdown Menu -->
-<div id="mobileMenu" class="hidden bg-gray-800 text-white flex flex-col p-5 absolute w-full top-16">
-    <a href="#about" class="p-2 hover:bg-gray-700">About</a>
-    <a href="#features" class="p-2 hover:bg-gray-700">Features</a>
-    <a href="#how-it-works" class="p-2 hover:bg-gray-700">How It Works</a>
-    <button onclick="window.location.href='signup.html'" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">Sign Up</button>
-    <button onclick="window.location.href='login.html'" class="mt-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Login</button>
-</div>
-
-
-
-
-
-<!-- 📖 About Section -->
-<section id="about" class="h-screen flex flex-col justify-center items-center text-center bg-gray-900 text-white">
-    <h2 class="text-4xl font-bold text-blue-500">About VolunteerHub</h2>
-    <p class="mt-4 text-lg max-w-2xl">
-        VolunteerHub simplifies volunteer hour tracking and ensures seamless supervisor verification.
-    </p>
-
-    <!-- Embedded Demo Video -->
-    <div class="mt-6">
-        <iframe class="w-[60vw] h-[60vh] max-w-4xl mx-auto aspect-video rounded-lg shadow-lg" 
-                src="https://www.dropbox.com/scl/fi/e76a6vzcedot4zatjrn4r/2025-05-10-23-59-34.mkv?rlkey=g846d5ygblc2ljxyb499adf31&st=hy7r2y48&dl=0" frameborder="0" allowfullscreen>
-        </iframe>
+  </header>
+  <main class="flex flex-col items-center justify-center min-h-screen pt-32 pb-12 px-4">
+    <section class="flex hero-content items-center gap-16 max-w-6xl w-full">
+      <div class="flex-1 flex flex-col gap-8">
+        <h1 class="text-5xl md:text-6xl font-extrabold leading-tight accent mb-2">Find, Track, and Compete in Volunteering</h1>
+        <p class="text-xl text-gray-700 max-w-xl mb-4">VolunteerHub helps you discover local volunteering opportunities, log your hours, and compete with friends on the leaderboard. Organizers can add events, and supervisors can sign off activities online. All in one beautiful, easy-to-use web app.</p>
+        <div class="flex gap-4 flex-wrap mb-4">
+          <a href="signup.html" class="btn-main">Get Started</a>
+          <a href="signup.html" class="btn-main" style="background: #fff; color: #2563eb; border: 2px solid #2563eb;">Sign Up</a>
+        </div>
+        <div class="flex gap-4 mt-2">
+          <a href="https://www.instagram.com/saitrseelam/" target="_blank"><img src="https://cdn4.iconfinder.com/data/icons/picons-social/57/38-instagram-2-512.png" alt="Instagram" class="social-icon"></a>
+          <a href="https://github.com/AERESAL" target="_blank"><img src="https://img.icons8.com/?size=256&id=106564&format=png" alt="GitHub" class="social-icon"></a>
+        </div>
+      </div>
+      <div class="flex-1 flex items-center justify-center hero-img">
+        <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80" alt="Volunteering" class="rounded-3xl shadow-2xl w-full max-w-md border-4 border-blue-100">
+      </div>
+    </section>
+    <section class="glass mt-20 p-10 max-w-5xl w-full flex flex-col items-center">
+      <h2 class="text-3xl font-bold mb-8 accent">Features</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10 w-full">
+        <div class="flex flex-col items-center text-center">
+          <svg class="feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-4.41 0-8-1.79-8-4V6c0-2.21 3.59-4 8-4s8 1.79 8 4v8c0 2.21-3.59 4-8 4z"/></svg>
+          <h3 class="font-semibold text-lg mb-2">Find Local Opportunities</h3>
+          <p class="text-gray-600">Browse and join volunteering events in your area, added by organizers and the community.</p>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <svg class="feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h3 class="font-semibold text-lg mb-2">Track & Log Hours</h3>
+          <p class="text-gray-600">Easily log your volunteer hours and activities. Get supervisor signatures online.</p>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <svg class="feature-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"/><circle cx="12" cy="12" r="10"/></svg>
+          <h3 class="font-semibold text-lg mb-2">Compete & Connect</h3>
+          <p class="text-gray-600">See your progress on the leaderboard, connect with friends, and share your achievements.</p>
+        </div>
+      </div>
+    </section>
+    <section class="mt-20 max-w-4xl w-full flex flex-col items-center">
+      <h2 class="text-3xl font-bold mb-6 accent">How It Works</h2>
+      <ol class="list-decimal list-inside text-lg text-gray-700 space-y-3">
+        <li>Sign up and create your profile.</li>
+        <li>Find and join local volunteering opportunities.</li>
+        <li>Log your hours and get supervisor approval online.</li>
+        <li>Track your progress and compete on the leaderboard.</li>
+        <li>Export your hours and share your impact!</li>
+      </ol>
+    </section>
+    <section class="mt-20 max-w-4xl w-full flex flex-col items-center">
+      <h2 class="text-3xl font-bold mb-6 accent">Join the Movement</h2>
+      <p class="text-lg text-gray-700 mb-6 text-center">Ready to make a difference? VolunteerHub is your all-in-one platform for volunteering, tracking, and celebrating your impact. Whether you're a student, organizer, or community leader, VolunteerHub empowers you to do more good—together.</p>
+      <a href="signup.html" class="btn-main">Sign Up Free</a>
+    </section>
+  </main>
+  <footer class="w-full flex flex-col items-center justify-center py-8 mt-20 bg-white bg-opacity-80">
+    <div class="flex gap-4 mb-2">
+      <a href="https://www.instagram.com/saitrseelam/" target="_blank"><img src="https://cdn4.iconfinder.com/data/icons/picons-social/57/38-instagram-2-512.png" alt="Instagram" class="social-icon"></a>
+      <a href="https://github.com/AERESAL" target="_blank"><img src="https://img.icons8.com/?size=256&id=106564&format=png" alt="GitHub" class="social-icon"></a>
     </div>
-</section>
-
-
-<!-- ✨ Features Section (Appears on Scroll) -->
-<section id="features" class="h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
-    <h2 class="text-4xl font-bold text-blue-500 mb-8">Features</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="m140-220-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Z"/>
-                </svg>
-            </div>
-            <p class="heading">Easy Tracking</p>
-            <p>Log volunteer hours effortlessly.</p>
-        </div>
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="M563-491q73-54 114-118.5T718-738q0-32-10.5-47T679-800q-47 0-83 79.5T560-541q0 14 .5 26.5T563-491ZM120-120v-80h80v80h-80Zm160 0v-80h80v80h-80Zm160 0v-80h80v80h-80Zm160 0v-80h80v80h-80Zm160 0v-80h80v80h-80ZM136-280l-56-56 64-64-64-64 56-56 64 64 64-64 56 56-64 64 64 64-56 56-64-64-64 64Zm482-40q-30 0-55-11.5T520-369q-25 14-51.5 25T414-322l-28-75q28-10 53.5-21.5T489-443q-5-22-7.5-48t-2.5-56q0-144 57-238.5T679-880q52 0 85 38.5T797-734q0 86-54.5 170T591-413q7 7 14.5 10.5T621-399q26 0 60.5-33t62.5-87l73 34q-7 17-11 41t1 42q10-5 23.5-17t27.5-30l63 49q-26 36-60 58t-63 22q-21 0-37.5-12.5T733-371q-28 25-57 38t-58 13Z"/>
-                </svg>
-            </div>
-            <p class="heading">Supervisor Signatures via Email</p>
-            <p>Get digital approval with a single click.</p>
-        </div>
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/>
-                </svg>
-            </div>
-            <p class="heading">Printable Reports</p>
-            <p>Generate well-formatted reports for easy sharing.</p>
-        </div>
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="M160-200h160v-320H160v320Zm240 0h160v-560H400v560Zm240 0h160v-240H640v240ZM80-120v-480h240v-240h320v320h240v400H80Z"/>
-                </svg>
-            </div>
-            <p class="heading">Leaderboard</p>
-            <p>Compete and see top volunteers in real-time.</p>
-        </div>
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="M574-618q-12-30-35.5-47T482-682q-18 0-35 5t-31 19l-58-58q14-14 38-25.5t44-14.5v-84h80v82q45 9 79 36.5t51 71.5l-76 32ZM792-56 608-240q-15 15-41 24.5T520-204v84h-80v-86q-56-14-93.5-51T292-350l80-32q12 42 40.5 72t75.5 30q18 0 33-4.5t29-13.5L56-792l56-56 736 736-56 56Z"/>
-                </svg>
-            </div>
-            <p class="heading">100% Free</p>
-            <p>VolunteerHub is completely free—no hidden fees!</p>
-        </div>
-        <div class="card">
-            <div class="icon-glow">
-                <svg xmlns="http://www.w3.org/2000/svg" height="80" viewBox="0 -960 960 960" width="80" fill="black">
-                    <path d="M240-120q-45 0-89-22t-71-58q26 0 53-20.5t27-59.5q0-50 35-85t85-35q50 0 85 35t35 85q0 66-47 113t-113 47Zm230-160L360-470l358-358q11-11 27.5-11.5T774-828l54 54q12 12 12 28t-12 28L470-360Zm-190 80Z"/>
-                </svg>
-            </div>
-            <p class="heading">Customizable</p>
-            <p>Adapt VolunteerHub to fit your needs!</p>
-        </div>
-    </div>
-</section>
-
-
-
-
-<footer class="bg-gray-900 text-white text-center p-5 mt-10">&copy; 2025 VolunteerHub. All rights reserved.</footer>
-
-<script>
-    function toggleMenu() {
-        document.getElementById('mobileMenu').classList.toggle('hidden');
-    }
-
-    function revealOnScroll() {
-        const elements = document.querySelectorAll('.fade-in');
-        elements.forEach(element => {
-            const rect = element.getBoundingClientRect();
-            if (rect.top < window.innerHeight - 100) {
-                element.classList.add('visible');
-            }
-        });
-    }
-
-    document.addEventListener("scroll", revealOnScroll);
-    revealOnScroll();
-</script>
-
+    <div class="text-gray-500 text-sm">&copy; 2025 VolunteerHub | Hack Club Neighborhood Project by Sai Seelam</div>
+  </footer>
 </body>
 </html>

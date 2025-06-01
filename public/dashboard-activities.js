@@ -127,9 +127,24 @@ function renderActivitiesSection(activities) {
     btn.addEventListener('click', async function(e) {
       e.stopPropagation();
       const id = this.getAttribute('data-id');
-      const title = decodeURIComponent(this.getAttribute('data-title'));
-      const email = decodeURIComponent(this.getAttribute('data-email'));
-      if (!id || !email) return alert('Missing activity or supervisor email.');
+      if (!id) return alert('Missing activity ID.');
+      // Find the full activity object by id
+      const activity = activities.find(a => (a.id || '') === id);
+      if (!activity) return alert('Could not find activity details.');
+      // Prepare the required fields for the signature request
+      const reqBody = {
+        name: activity.name || activity.title || '',
+        date: activity.date || '',
+        start_time: activity.start_time || '',
+        end_time: activity.end_time || '',
+        location: activity.location || activity.place || '',
+        supervisorName: activity.supervisorName || '',
+        supervisorEmail: activity.supervisorEmail || ''
+      };
+      // Validate required fields
+      if (!reqBody.name || !reqBody.date || !reqBody.start_time || !reqBody.end_time || !reqBody.location || !reqBody.supervisorName || !reqBody.supervisorEmail) {
+        return alert('Missing required activity fields for signature request.');
+      }
       try {
         const res = await fetch(`${API_URL}/send-signature-request`, {
           method: 'POST',
@@ -137,7 +152,7 @@ function renderActivitiesSection(activities) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${window.token}`
           },
-          body: JSON.stringify({ id, title, supervisorEmail: email, username: window.currentUsername })
+          body: JSON.stringify(reqBody)
         });
         const data = await res.json();
         if (res.ok) {

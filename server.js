@@ -372,7 +372,13 @@ app.post('/send-signature-request', authenticateJWT, async (req, res) => {
     const templatePath = path.join(__dirname, 'email_template.html');
     let emailHtml = fs.readFileSync(templatePath, 'utf8');
     // Construct the signature form URL
-    const signatureFormUrl = `https://neighborhood-liard.vercel.app/signature-form.html?token=${signatureToken}`;
+    let baseUrl;
+    if (process.env.NODE_ENV === 'development') {
+      baseUrl = 'http://localhost:3000';
+    } else {
+      baseUrl = 'https://neighborhood-liard.vercel.app';
+    }
+    const signatureFormUrl = `${baseUrl}/signature-form.html?token=${signatureToken}`;
     emailHtml = emailHtml
       .replace(/{{supervisorName}}/g, supervisorName)
       .replace(/{{submitterName}}/g, submitterName)

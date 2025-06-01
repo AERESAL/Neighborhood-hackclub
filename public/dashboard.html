@@ -179,6 +179,10 @@
             z-index: 2;
             position: relative;
         }
+        /* Print: force landscape orientation */
+        @media print {
+            @page { size: landscape; }
+        }
     </style>
     <!-- Remove all JS that forcibly sets fill/stroke/color on sidebar SVGs -->
 </head>
@@ -224,7 +228,7 @@
                         <path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
                     </svg>
                 </button>
-                <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px;">
+                <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px;" onclick="window.location.href='print.html'">
                     <!-- Remade SVG: simple print icon, accessible, using currentColor -->
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
                         <rect x="6" y="9" width="12" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>

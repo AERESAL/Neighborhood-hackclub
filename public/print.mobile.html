@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Print Activities | VolunteerHub</title>
+  <title>Print Activities | VolunteerHub (Mobile)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="dashboard-theme.css">
   <script src="dashboard-theme.js"></script>
@@ -19,28 +19,29 @@
       min-height: 100vh;
     }
     .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: rgba(255,255,255,0.95);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px #0001;
-      padding: 32px 24px 24px 24px;
+      width: 100vw;
+      max-width: 100vw;
+      margin: 0;
+      background: rgba(255,255,255,0.98);
+      border-radius: 0;
+      box-shadow: none;
+      padding: 12px 4px 24px 4px;
     }
     .preview {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 8px #0001;
-      padding: 24px;
-      margin-top: 24px;
+      padding: 10px;
+      margin-top: 16px;
     }
     .accent-btn {
       background: var(--accent, #2563eb);
       color: #fff;
       border: none;
       border-radius: 6px;
-      padding: 10px 24px;
+      padding: 10px 16px;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 15px;
       transition: background 0.2s;
     }
     .accent-btn:hover {
@@ -51,22 +52,22 @@
       width: 18px;
       height: 18px;
     }
-    @media (max-width: 700px) {
-      .container { padding: 10px; }
-      .preview { padding: 10px; }
+    header, aside { position: static !important; width: 100vw !important; }
+    @media (min-width: 700px) {
+      .container { max-width: 500px; margin: 40px auto; border-radius: 16px; box-shadow: 0 4px 24px #0001; }
     }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
-  <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100%;height:100%;object-fit:cover;z-index:-1;display:none;">
+  <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
     <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
   </video>
-    <!-- Header (copied from dashboard.html/community.html) -->
-    <header class="flex items-center justify-between bg-white shadow-md px-6 py-4 fixed top-0 left-0 w-full z-50">
-      <h1 class="text-xl font-bold text-gray-700">VolunteerHub</h1>
-      <div class="relative flex items-center gap-4">
-        <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
-        <div id="profileMenu" class="hidden absolute top-16 right-0 w-44 shadow-lg rounded-md z-50 border transition-colors">
+    <!-- Mobile Header -->
+    <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50">
+      <h1 class="text-lg font-bold text-gray-700">VolunteerHub</h1>
+      <div class="relative flex items-center gap-2">
+        <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
+        <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
           <ul class="py-2 text-sm" id="profileMenuList">
             <li><a href="#" class="block px-4 py-2">Profile</a></li>
             <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
@@ -74,62 +75,33 @@
         </div>
       </div>
     </header>
-    <div class="flex flex-1">
-      <!-- Sidebar (copied from dashboard.html/community.html) -->
-      <aside class="w-64 h-[100vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed pt-24">
-        <nav class="mt-6 flex-1">
-          <ul class="space-y-2">
-            <li><a href="dashboard.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Dashboard</a></li>
-            <li><a href="dashboard.html#activitiesSection" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Activities</a></li>
-            <li><a href="dashboard.html#leaderboardSection" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Leaderboard</a></li>
-            <li><a href="community.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Community</a></li>
-          </ul>
-        </nav>
-        <div class="flex items-center justify-center gap-4 mb-4 px-6">
-          <button id="sidebarSettingsBtn" class="w-10 h-10" style="padding-bottom: 10px;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
-              <path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-            </svg>
-          </button>
-          <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px; background: var(--accent, #2563eb); color: #fff;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
-              <rect x="6" y="9" width="12" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-              <rect x="8" y="16" width="8" height="4" rx="1" fill="currentColor"/>
-              <rect x="6" y="3" width="12" height="4" rx="1" fill="currentColor"/>
-              <circle cx="17" cy="12.5" r="1" fill="currentColor"/>
-            </svg>
-          </button>
+    <main class="flex-1 p-2 mt-2">
+      <div class="container">
+        <h2 class="text-xl font-bold text-gray-800 mb-3">Print Activities</h2>
+        <div id="printStatus" class="mb-3 text-red-500"></div>
+        <div id="activitiesList" class="mb-4"></div>
+        <div id="totalHoursSection" class="mb-3 text-lg font-bold text-blue-700 flex items-center gap-2" style="display:none;">
+          Total Hours: <span id="totalHoursValue">0</span>
         </div>
-      </aside>
-      <!-- Main Content -->
-      <main class="flex-1 p-6 ml-64 mt-[64px]">
-        <div class="container">
-          <h2 class="text-2xl font-bold text-gray-800 mb-4">Print Activities</h2>
-          <div id="printStatus" class="mb-4 text-red-500"></div>
-          <div id="activitiesList" class="mb-6"></div>
-          <div id="totalHoursSection" class="mb-4 text-xl font-bold text-blue-700 flex items-center gap-2" style="display:none;">
-            Total Hours: <span id="totalHoursValue">0</span>
-          </div>
-          <div class="flex gap-4 mb-4">
-            <button id="selectAllBtn" class="accent-btn">Select All</button>
-            <button id="deselectAllBtn" class="accent-btn">Deselect All</button>
-            <button id="printBtn" class="accent-btn">Print Selected</button>
-          </div>
-          <div class="preview" id="printPreview">
-            <h3 class="text-lg font-semibold mb-2">Preview</h3>
-            <button id="previewPdfBtn" class="accent-btn mb-2">Open PDF Preview in New Tab</button>
-          </div>
+        <div class="flex gap-2 mb-3 flex-wrap">
+          <button id="selectAllBtn" class="accent-btn flex-1">Select All</button>
+          <button id="deselectAllBtn" class="accent-btn flex-1">Deselect All</button>
+          <button id="printBtn" class="accent-btn flex-1">Print Selected</button>
         </div>
-      </main>
-    </div>
+        <div class="preview" id="printPreview">
+          <h3 class="text-base font-semibold mb-2">Preview</h3>
+          <button id="previewPdfBtn" class="accent-btn mb-2">Open PDF Preview</button>
+        </div>
+      </div>
+    </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="dashboard-theme.js"></script>
+    <script src="dashboard-core.js"></script>
+    <script src="dashboard-activities.js"></script>
     <script>
-      // Ensure the VolunteerHub theme is applied (from themes.json via dashboard-theme.js)
+      // Theme logic (reuse from desktop)
       function applyPrintWidgetTheme(theme) {
-        // Apply theme to the print widget/preview
         var preview = document.getElementById('printPreview');
         if (preview && theme) {
           preview.style.background = theme.color3 || '#e0e0e0';
@@ -139,13 +111,11 @@
           });
         }
       }
-      // Patch the dashboard theme loader to also update the print widget
       const origApplyDashboardTheme = window.applyDashboardTheme;
       window.applyDashboardTheme = function(theme) {
         origApplyDashboardTheme(theme);
         applyPrintWidgetTheme(theme);
       };
-      // Ensure the theme is applied
       if (window.loadAndApplyDashboardTheme) {
         window.loadAndApplyDashboardTheme();
       } else {
@@ -155,6 +125,12 @@
       }
     </script>
     <script>
+      // Reuse the same JS logic as desktop (fetchActivities, renderActivitiesList, renderPreview, etc.)
+      // You can include the same JS files or copy the relevant code here if needed.
+      // If you want to keep all logic in dashboard-activities.js, just ensure it works for mobile layout.
+    </script>
+    <script>
+      // Inline the print.html logic for activity selection and printing (reuse from desktop)
       const API_URL_LOCAL = "http://localhost:3000";
       const API_URL_PROD = "https://neighborhood-liard.vercel.app";
       const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") ? API_URL_LOCAL : API_URL_PROD;
@@ -163,7 +139,6 @@
       let activities = [];
       let selectedIds = new Set();
       const activitiesList = document.getElementById('activitiesList');
-      const previewContent = document.getElementById('previewContent');
       const printStatus = document.getElementById('printStatus');
       async function fetchActivities() {
         if (!currentUsername || !lastToken) {
@@ -205,7 +180,6 @@
         });
         html += '</form>';
         activitiesList.innerHTML = html;
-        // Attach listeners
         document.querySelectorAll('.checkbox').forEach(cb => {
           cb.addEventListener('change', function() {
             const id = this.getAttribute('data-id');
@@ -216,20 +190,18 @@
         });
       }
       function renderPreview() {
-        // Calculate and show total hours for selected activities
         const totalHoursSection = document.getElementById('totalHoursSection');
         const totalHoursValue = document.getElementById('totalHoursValue');
         const selected = activities.filter(act => selectedIds.has(act.id || `${act.name}-${act.date}-${act.start_time}`));
         let total = 0;
         selected.forEach(act => {
-          // Try to parse hours from act.hours, else calculate from start/end time
           if (act.hours) {
             total += parseFloat(act.hours) || 0;
           } else if (act.start_time && act.end_time) {
             const [sh, sm] = act.start_time.split(':').map(Number);
             const [eh, em] = act.end_time.split(':').map(Number);
             let diff = (eh + em/60) - (sh + sm/60);
-            if (diff < 0) diff += 24; // handle overnight
+            if (diff < 0) diff += 24;
             total += diff;
           }
         });
@@ -241,20 +213,16 @@
           totalHoursValue.textContent = '0';
         }
         if (!activities.length || !selectedIds.size) {
-          // No preview if nothing selected
           return;
         }
         const { jsPDF } = window.jspdf;
-        // Set PDF to landscape
         const doc = new jsPDF({ orientation: 'landscape' });
         doc.setFont('helvetica', '');
         doc.setFontSize(18);
         doc.text('VolunteerHub Activities', 14, 18);
         doc.setFontSize(12);
         doc.text('Generated: ' + new Date().toLocaleString(), 14, 26);
-        // Table head
         const head = [['#', 'Activity', 'Date', 'Time', 'Location', 'Supervisor', 'Signature']];
-        // Table body with signature placeholder
         const body = selected.map((act, i) => [
           i + 1,
           act.name || act.title || '',
@@ -272,7 +240,6 @@
           headStyles: { fillColor: [37, 99, 235] },
           alternateRowStyles: { fillColor: [240, 244, 255] },
           didDrawCell: function (data) {
-            // Draw signature image in the cell if available
             if (data.column.index === 6 && data.row.index < selected.length) {
               const act = selected[data.row.index];
               if (act && act.signed && act.signatureData) {
@@ -281,13 +248,11 @@
                   const cellWidth = data.cell.width - 2;
                   const cellHeight = data.cell.height - 2;
                   let imgW = cellWidth, imgH = cellHeight;
-                  // Maintain aspect ratio
                   if (imgProps.width / imgProps.height > cellWidth / cellHeight) {
                     imgH = imgW * imgProps.height / imgProps.width;
                   } else {
                     imgW = imgH * imgProps.width / imgProps.height;
                   }
-                  // Center image in cell
                   const x = data.cell.x + (data.cell.width - imgW) / 2;
                   const y = data.cell.y + (data.cell.height - imgH) / 2;
                   doc.addImage(act.signatureData, 'PNG', x, y, imgW, imgH);
@@ -299,27 +264,21 @@
             }
           }
         });
-        // Add total hours below the table (reuse total from above)
         const afterTableY = doc.lastAutoTable.finalY || 32 + 10 * (body.length + 1);
         doc.setFontSize(14);
         doc.setTextColor(37, 99, 235);
         doc.text(`Total Hours: ${total.toFixed(2)}`, 14, afterTableY + 14);
-        // Add footer
         const pageHeight = doc.internal.pageSize.getHeight();
         doc.setFontSize(10);
         doc.setTextColor(120);
         doc.text('VolunteerHub is an app developed by Sai Seelam.', 14, pageHeight - 10);
-        // Attach PDF bloburl to preview button
         const previewBtn = document.getElementById('previewPdfBtn');
         previewBtn.onclick = function(e) {
           e.preventDefault();
-          // Create a Blob and use window.open with a direct Blob URL
           const blob = doc.output('blob');
           const blobUrl = URL.createObjectURL(blob);
-          // Try to open in a new tab, fallback to download if blocked
           const win = window.open(blobUrl, '_blank');
           if (!win) {
-            // If popup blocked, trigger download
             const a = document.createElement('a');
             a.href = blobUrl;
             a.download = 'VolunteerHub-Activities.pdf';

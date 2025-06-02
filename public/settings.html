@@ -104,7 +104,11 @@ fetch('./themes.json')
       `;
       btn.onclick = () => {
         localStorage.setItem('themeIdx', idx);
-        document.cookie = `themeIdx=${idx}; path=/; max-age=31536000`;
+        const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+        const cookieAttrs = isLocalhost
+          ? "path=/; max-age=31536000"
+          : "path=/; max-age=31536000; SameSite=None; Secure";
+        document.cookie = `themeIdx=${idx}; ${cookieAttrs}`;
         applyTheme(theme);
       };
       themeSelector.appendChild(btn);

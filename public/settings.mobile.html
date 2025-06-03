@@ -1,121 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VolunteerHub Settings (Mobile)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="dashboard-theme.css">
-  <script src="dashboard-theme.js"></script>
-  <style>
-    :root {
-      --accent: #2563eb;
-      --color2: #22d3ee;
-    }
-    body {
-      font-family: Lexend Deca, Montserrat, Arial, sans-serif;
-      background: #f7f7f7;
-      margin: 0;
-      min-height: 100vh;
-    }
-    .container {
-      width: 100vw;
-      max-width: 100vw;
-      margin: 0;
-      background: rgba(255,255,255,0.98);
-      border-radius: 0;
-      box-shadow: none;
-      padding: 12px 4px 24px 4px;
-    }
-    .accent-btn {
-      background: var(--accent, #2563eb);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 16px;
-      font-weight: 600;
-      font-size: 15px;
-      transition: background 0.2s;
-    }
-    .accent-btn:hover {
-      background: #1e40af;
-    }
-    header, aside { position: static !important; width: 100vw !important; }
-    @media (min-width: 700px) {
-      .container { max-width: 500px; margin: 40px auto; border-radius: 16px; box-shadow: 0 4px 24px #0001; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerHub Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+
+    </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
-  <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
-    <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
-  </video>
-  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50">
-    <h1 class="text-lg font-bold text-gray-700">VolunteerHub</h1>
-    <div class="relative flex items-center gap-2">
-      <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
-      <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
-        <ul class="py-2 text-sm" id="profileMenuList">
-          <li><a href="#" class="block px-4 py-2">Profile</a></li>
-          <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
-        </ul>
-      </div>
+<body class="min-h-screen flex flex-col items-center justify-center">
+    <div id="settingsBgMediaContainer"></div>
+    <div id="settingsContent" class="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mt-12 relative z-10">
+        <button onclick="window.location.href='dashboard.html'" id="backBtn" class="mb-6 flex items-center font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            Back to Dashboard
+        </button>
+        <h1 id="settingsTitle" class="text-2xl font-bold mb-4">Settings</h1>
+        <!-- Profile Section -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold mb-2">Profile</h2>
+            <form id="profileForm" class="space-y-4">
+                <div>
+                    <label for="profilePic" class="block text-sm font-medium mb-1">Profile Picture</label>
+                    <div class="flex items-center gap-4 mb-2">
+                        <img id="profilePicPreview" src="" alt="Profile Picture" class="w-16 h-16 rounded-full object-cover border" style="display:none;" />
+                        <input type="file" id="profilePic" name="profilePic" accept="image/*" class="block" />
+                    </div>
+                </div>
+                <div>
+                    <label for="profileUsername" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="profileUsername" name="username" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profileName" class="block text-sm font-medium mb-1">Name</label>
+                    <input type="text" id="profileName" name="name" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profileEmail" class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="profileEmail" name="email" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label for="profilePhone" class="block text-sm font-medium mb-1">Phone Number</label>
+                    <input type="tel" id="profilePhone" name="phone" class="w-full border rounded px-3 py-2" />
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save Changes</button>
+                <div id="profileStatus" class="text-sm mt-2"></div>
+            </form>
+            <!-- Change Password Section -->
+            <div class="mt-8">
+                <h3 class="text-md font-semibold mb-2">Change Password</h3>
+                <form id="passwordForm" class="space-y-3">
+                    <div>
+                        <label for="oldPassword" class="block text-sm font-medium mb-1">Current Password</label>
+                        <input type="password" id="oldPassword" name="oldPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium mb-1">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium mb-1">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="w-full border rounded px-3 py-2" required />
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded">Change Password</button>
+                    <div id="passwordStatus" class="text-sm mt-2"></div>
+                </form>
+            </div>
+        </div>
+        <!-- End Profile Section -->
+        <div class="mb-6">
+            <h2 id="themeHeading" class="text-lg font-semibold mb-2">Choose Theme</h2>
+            <div id="themeSelector" class="grid grid-cols-2 gap-6"></div>
+        </div>
+        <div id="otherPrefs" class="text-gray-600">Other preferences coming soon.</div>
     </div>
-  </header>
-  <!-- Mobile Sidebar Menu -->
-  <div id="mobileSidebarOverlay" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden"></div>
-  <aside id="mobileSidebar" class="fixed top-0 left-0 h-full w-full bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md z-50 transform -translate-x-full transition-transform duration-200 flex flex-col items-center justify-center" style="max-width:100vw;">
-    <div class="flex items-center justify-between px-6 py-4 border-b w-full">
-      <span class="text-lg font-bold mx-auto">Menu</span>
-      <button id="closeMobileSidebar" class="text-gray-700 text-2xl font-bold absolute right-4 top-4" aria-label="Close menu">&times;</button>
-    </div>
-    <nav class="mt-4 flex-1 w-full flex flex-col items-center justify-center">
-      <ul class="space-y-4 w-full flex flex-col items-center">
-        <li class="w-4/5"><a href="dashboard.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/></svg>Dashboard</a></li>
-        <li class="w-4/5"><a href="dashboard.mobile.html#activitiesSection" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg>Activities</a></li>
-        <li class="w-4/5"><a href="dashboard.mobile.html#leaderboardSection" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><rect x="6" y="10" width="12" height="8" rx="2" fill="currentColor"/></svg>Leaderboard</a></li>
-        <li class="w-4/5"><a href="community.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>Community</a></li>
-      </ul>
-    </nav>
-    <div class="flex items-center justify-center gap-4 mb-4 px-6 mt-8 w-full">
-      <button id="sidebarSettingsBtn" class="w-10 h-10" style="padding-bottom: 10px;">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
-          <path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-        </svg>
-      </button>
-      <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px; background: var(--accent, #2563eb); color: #fff;">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
-          <rect x="6" y="9" width="12" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-          <rect x="8" y="16" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="6" y="3" width="12" height="4" rx="1" fill="currentColor"/>
-          <circle cx="17" cy="12.5" r="1" fill="currentColor"/>
-        </svg>
-      </button>
-    </div>
-  </aside>
-  <main class="flex-1 p-2 mt-2">
-    <div class="container">
-      <h2 class="text-xl font-bold text-gray-800 mb-3">Settings</h2>
-      <!-- Settings Section (reuse logic from settings.html) -->
-      <form id="settingsForm">
-        <!-- Add your settings fields here, or reuse from settings.html -->
-      </form>
-      <div id="settingsStatus" class="mb-2"></div>
-    </div>
-  </main>
-  <script src="dashboard-theme.js"></script>
-  <script src="dashboard-core.js"></script>
-  <script>
-    // Ensure the VolunteerHub theme is applied
-    if (window.loadAndApplyDashboardTheme) {
-      window.loadAndApplyDashboardTheme();
-    } else {
-      document.addEventListener('DOMContentLoaded', function() {
-        if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
-      });
+    <script>
+// Load themes from themes.json and render theme buttons
+fetch('./themes.json')
+  .then(res => {
+    if (!res.ok) throw new Error('Could not load themes.json');
+    return res.json();
+  })
+  .then(data => {
+    const themes = data.themes;
+    const themeSelector = document.getElementById('themeSelector');
+    themeSelector.innerHTML = '';
+    themes.forEach((theme, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'flex flex-col items-center p-2 rounded-lg border-2 border-transparent hover:border-blue-500 focus:border-blue-600 transition';
+      btn.style.background = theme.color2;
+      btn.style.color = theme.textColor;
+      btn.setAttribute('data-theme-idx', idx);
+      let previewMedia;
+      if (theme.background.endsWith('.mp4')) {
+        previewMedia = `<video src="${theme.background}" class="rounded-md mb-2" style="width:180px;height:100px;object-fit:cover;" autoplay loop muted playsinline></video>`;
+      } else {
+        previewMedia = `<img src="${theme.background}" class="rounded-md mb-2" style="width:180px;height:100px;object-fit:cover;" alt="${theme.name} preview" />`;
+      }
+      btn.innerHTML = `
+        ${previewMedia}
+        <span class="font-medium">${theme.name}</span>
+      `;
+      btn.onclick = () => {
+        localStorage.setItem('themeIdx', idx);
+        const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+        const cookieAttrs = isLocalhost
+          ? "path=/; max-age=31536000"
+          : "path=/; max-age=31536000; SameSite=None; Secure";
+        document.cookie = `themeIdx=${idx}; ${cookieAttrs}`;
+        applyTheme(theme);
+      };
+      themeSelector.appendChild(btn);
+    });
+    // On load, apply saved theme
+    const savedIdx = localStorage.getItem('themeIdx');
+    if (savedIdx && themes[savedIdx]) {
+      applyTheme(themes[savedIdx]);
+    } else if (themes[0]) {
+      applyTheme(themes[0]);
     }
-  </script>
+  })
+  .catch(err => {
+    document.getElementById('themeSelector').innerHTML = '<div class="text-red-500">Failed to load themes.</div>';
+  });
+
+function applyTheme(theme) {
+  const container = document.getElementById('settingsBgMediaContainer');
+  container.innerHTML = '';
+  if (theme.background.endsWith('.mp4')) {
+    const video = document.createElement('video');
+    video.src = theme.background;
+    video.className = 'fixed top-0 left-0 w-full h-full object-cover -z-10';
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    container.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.src = theme.background;
+    img.className = 'fixed top-0 left-0 w-full h-full object-cover -z-10';
+    img.alt = theme.name + ' background';
+    container.appendChild(img);
+  }
+  // Apply text and accent colors
+  const content = document.getElementById('settingsContent');
+  const title = document.getElementById('settingsTitle');
+  const heading = document.getElementById('themeHeading');
+  const backBtn = document.getElementById('backBtn');
+  const otherPrefs = document.getElementById('otherPrefs');
+  content.style.background = theme.color2;
+  content.style.color = theme.textColor;
+  title.style.color = theme.textColor;
+  heading.style.color = theme.accents;
+  backBtn.style.color = theme.accents;
+  otherPrefs.style.color = theme.textColor;
+  // Style all theme buttons
+  document.querySelectorAll('#themeSelector button').forEach(btn => {
+    btn.style.borderColor = theme.accents;
+    btn.style.color = theme.textColor;
+  });
+}
+// --- Profile Section Logic ---
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://neighborhood-liard.vercel.app";
+const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+
+const token = localStorage.getItem('token');
+const profileForm = document.getElementById('profileForm');
+const profileUsername = document.getElementById('profileUsername');
+const profileName = document.getElementById('profileName');
+const profileEmail = document.getElementById('profileEmail');
+const profilePhone = document.getElementById('profilePhone');
+const profileStatus = document.getElementById('profileStatus');
+const profilePic = document.getElementById('profilePic');
+const profilePicPreview = document.getElementById('profilePicPreview');
+let profilePicData = null;
+
+// Show preview and store base64 when user selects a file
+profilePic.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            profilePicData = evt.target.result;
+            profilePicPreview.src = profilePicData;
+            profilePicPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Fetch user info and prefill form
+async function loadProfile() {
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch user info');
+        const data = await res.json();
+        if (data.profilePic) {
+            profilePicPreview.src = data.profilePic;
+            profilePicPreview.style.display = 'block';
+            profilePicData = data.profilePic;
+        } else {
+            profilePicPreview.style.display = 'none';
+            profilePicPreview.src = '';
+            profilePicData = null;
+        }
+        if (data.username) profileUsername.value = data.username;
+        if (data.firstName || data.lastName) {
+            profileName.value = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+        } else if (data.username) {
+            profileName.value = data.username;
+        }
+        if (data.email) profileEmail.value = data.email;
+        if (data.phone) profilePhone.value = data.phone;
+    } catch (err) {
+        profileStatus.textContent = 'Could not load profile info.';
+        profileStatus.style.color = '#e74c3c';
+    }
+}
+
+profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    profileStatus.textContent = 'Saving...';
+    profileStatus.style.color = '#333';
+    const username = profileUsername.value.trim();
+    const [firstName, ...rest] = profileName.value.trim().split(' ');
+    const lastName = rest.join(' ');
+    const email = profileEmail.value.trim();
+    const phone = profilePhone.value.trim();
+    // Add profilePicData if available
+    const payload = { username, firstName, lastName, email, phone };
+    if (profilePicData) payload.profilePic = profilePicData;
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Failed to update profile');
+        profileStatus.textContent = 'Profile updated!';
+        profileStatus.style.color = '#27ae60';
+    } catch (err) {
+        profileStatus.textContent = 'Error updating profile.';
+        profileStatus.style.color = '#e74c3c';
+    }
+});
+
+// Password change logic
+const passwordForm = document.getElementById('passwordForm');
+const oldPassword = document.getElementById('oldPassword');
+const newPassword = document.getElementById('newPassword');
+const confirmPassword = document.getElementById('confirmPassword');
+const passwordStatus = document.getElementById('passwordStatus');
+
+passwordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    passwordStatus.textContent = 'Changing password...';
+    passwordStatus.style.color = '#333';
+    if (newPassword.value !== confirmPassword.value) {
+        passwordStatus.textContent = 'New passwords do not match.';
+        passwordStatus.style.color = '#e74c3c';
+        return;
+    }
+    try {
+        const res = await fetch(`${API_URL}/users/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ oldPassword: oldPassword.value, newPassword: newPassword.value })
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            passwordStatus.textContent = data.message || 'Failed to change password.';
+            passwordStatus.style.color = '#e74c3c';
+        } else {
+            passwordStatus.textContent = 'Password changed successfully!';
+            passwordStatus.style.color = '#27ae60';
+            passwordForm.reset();
+        }
+    } catch (err) {
+        passwordStatus.textContent = 'Error changing password.';
+        passwordStatus.style.color = '#e74c3c';
+    }
+});
+
+loadProfile();
+</script>
 </body>
 </html>
 

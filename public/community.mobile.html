@@ -50,9 +50,14 @@
   <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
     <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
   </video>
-  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50">
-    <h1 class="text-lg font-bold text-gray-700">VolunteerHub</h1>
-    <div class="relative flex items-center gap-2">
+  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed top-0 left-0">
+    <button id="mobileMenuBtn" class="mr-2 flex items-center justify-center w-10 h-10" aria-label="Open menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <h1 class="flex-1 text-lg font-bold text-gray-700 text-center">VolunteerHub</h1>
+    <div class="relative flex items-center gap-2 ml-auto">
       <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
       <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
         <ul class="py-2 text-sm" id="profileMenuList">
@@ -72,8 +77,6 @@
     <nav class="mt-4 flex-1 w-full flex flex-col items-center justify-center">
       <ul class="space-y-4 w-full flex flex-col items-center">
         <li class="w-4/5"><a href="dashboard.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/></svg>Dashboard</a></li>
-        <li class="w-4/5"><a href="dashboard.mobile.html#activitiesSection" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg>Activities</a></li>
-        <li class="w-4/5"><a href="dashboard.mobile.html#leaderboardSection" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><rect x="6" y="10" width="12" height="8" rx="2" fill="currentColor"/></svg>Leaderboard</a></li>
         <li class="w-4/5"><a href="community.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>Community</a></li>
       </ul>
     </nav>
@@ -93,14 +96,39 @@
         </svg>
       </button>
     </div>
+    <div class="flex items-center justify-center mb-6 w-full">
+      <button id="sidebarLogoutBtn" class="w-full accent-btn">Log Out</button>
+    </div>
   </aside>
   <main class="flex-1 p-2 mt-2">
     <div class="container">
       <h2 class="text-xl font-bold text-gray-800 mb-3">Community</h2>
-      <!-- Community Section (reuse logic from community.html) -->
-      <div id="communityFeed"></div>
-      <button id="postBtn" class="accent-btn my-2">Post</button>
-      <div id="communityStatus" class="mb-2"></div>
+      <!-- Tabs -->
+      <div class="flex mb-4">
+        <button id="communityTab" class="flex-1 py-2 font-semibold rounded-l-lg border border-gray-300 bg-white text-gray-700 focus:outline-none">Community</button>
+        <button id="friendsTab" class="flex-1 py-2 font-semibold rounded-r-lg border border-gray-300 bg-gray-100 text-gray-500 focus:outline-none">Friends</button>
+      </div>
+      <!-- Tab Content -->
+      <div id="communityTabContent">
+        <!-- Community Posts Section -->
+        <form id="addPostForm" class="mt-2 flex flex-col gap-2">
+          <textarea id="postContent" class="border rounded px-3 py-2" rows="3" placeholder="Share something with the community..." required></textarea>
+          <input type="file" accept="image/*" id="postImage" class="border rounded px-3 py-2">
+          <button type="submit" class="self-end accent-btn">Post</button>
+        </form>
+        <div id="communityFeed" class="mt-4"></div>
+        <div id="communityStatus" class="mb-2"></div>
+      </div>
+      <div id="friendsTabContent" style="display:none;">
+        <!-- Friends Add/Search Section -->
+        <form id="addFriendForm" class="mb-4 flex gap-2">
+          <input type="text" id="friendSearchInput" class="border rounded px-2 py-1 flex-1" placeholder="Search username..." autocomplete="off">
+          <button type="submit" class="accent-btn">Add</button>
+        </form>
+        <div id="friendSearchResults" class="mb-2"></div>
+        <ul class="space-y-3 mb-4" id="friendsList"></ul>
+        <div id="friendsStatus" class="mb-2"></div>
+      </div>
     </div>
   </main>
   <script src="dashboard-theme.js"></script>
@@ -115,6 +143,178 @@
         if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
       });
     }
+    // Mobile sidebar open/close logic
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileSidebar = document.getElementById('mobileSidebar');
+    const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+    const closeMobileSidebar = document.getElementById('closeMobileSidebar');
+    function openMobileSidebar() {
+      mobileSidebar.classList.remove('-translate-x-full');
+      mobileSidebarOverlay.classList.remove('hidden');
+    }
+    function closeSidebar() {
+      mobileSidebar.classList.add('-translate-x-full');
+      mobileSidebarOverlay.classList.add('hidden');
+    }
+    if (mobileMenuBtn && closeMobileSidebar && mobileSidebarOverlay) {
+      mobileMenuBtn.addEventListener('click', openMobileSidebar);
+      closeMobileSidebar.addEventListener('click', closeSidebar);
+      mobileSidebarOverlay.addEventListener('click', closeSidebar);
+    }
+    // Tabs logic
+    const communityTab = document.getElementById('communityTab');
+    const friendsTab = document.getElementById('friendsTab');
+    const communityTabContent = document.getElementById('communityTabContent');
+    const friendsTabContent = document.getElementById('friendsTabContent');
+    if (communityTab && friendsTab && communityTabContent && friendsTabContent) {
+      communityTab.addEventListener('click', function() {
+        communityTab.classList.add('bg-white', 'text-gray-700');
+        communityTab.classList.remove('bg-gray-100', 'text-gray-500');
+        friendsTab.classList.add('bg-gray-100', 'text-gray-500');
+        friendsTab.classList.remove('bg-white', 'text-gray-700');
+        communityTabContent.style.display = '';
+        friendsTabContent.style.display = 'none';
+      });
+      friendsTab.addEventListener('click', function() {
+        friendsTab.classList.add('bg-white', 'text-gray-700');
+        friendsTab.classList.remove('bg-gray-100', 'text-gray-500');
+        communityTab.classList.add('bg-gray-100', 'text-gray-500');
+        communityTab.classList.remove('bg-white', 'text-gray-700');
+        communityTabContent.style.display = 'none';
+        friendsTabContent.style.display = '';
+      });
+    }
+
+    // --- Community Posts Logic (reuse from community.html) ---
+    const API_URL = '';
+    const currentUser = localStorage.getItem('username') || '';
+    async function fetchAndRenderPosts() {
+      const postsList = document.getElementById('communityFeed');
+      postsList.innerHTML = '<div class="text-gray-400">Loading posts...</div>';
+      try {
+        const res = await fetch(`/api/community-posts`);
+        if (!res.ok) throw new Error('Failed to fetch posts');
+        const data = await res.json();
+        postsList.innerHTML = '';
+        if (!data.posts || data.posts.length === 0) {
+          postsList.innerHTML = '<div class="text-gray-400">No posts yet.</div>';
+          return;
+        }
+        data.posts.forEach(post => {
+          const div = document.createElement('div');
+          div.className = 'bg-gray-100 rounded p-4 shadow';
+          let canDelete = false;
+          if (post.author && post.author === currentUser) canDelete = true;
+          let imageUrl = post.imageUrl;
+          if (imageUrl && imageUrl.startsWith('/uploads/')) {
+            imageUrl = `${imageUrl}`;
+          }
+          div.innerHTML = `
+            <div class="font-bold text-lg text-gray-700">${post.author || 'Anonymous'}</div>
+            <div class="text-gray-600 mt-1">${post.content}</div>
+            ${imageUrl ? `<img src="${imageUrl}" alt="Post image" class="mt-2 max-h-60 rounded shadow" style="max-width:100%">` : ''}
+            <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
+            ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
+          `;
+          postsList.appendChild(div);
+        });
+        document.querySelectorAll('.delete-post-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            if (!confirm('Delete this post?')) return;
+            const postId = this.getAttribute('data-id');
+            try {
+              const res = await fetch(`/api/community-posts/${postId}?username=${encodeURIComponent(currentUser)}`, { method: 'DELETE' });
+              fetchAndRenderPosts();
+            } catch (err) { alert('Failed to delete.'); }
+          });
+        });
+      } catch (err) {
+        postsList.innerHTML = '<div class="text-gray-400">Failed to load posts.</div>';
+      }
+    }
+    document.getElementById('addPostForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const content = document.getElementById('postContent').value.trim();
+      const imageInput = document.getElementById('postImage');
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('author', currentUser);
+      if (imageInput.files[0]) formData.append('image', imageInput.files[0]);
+      try {
+        const res = await fetch(`${API_URL}/api/community-posts`, { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Failed to post');
+        this.reset();
+        fetchAndRenderPosts();
+      } catch (err) { alert('Failed to post.'); }
+    });
+    window.addEventListener('DOMContentLoaded', fetchAndRenderPosts);
+
+    // --- Friends Add/Search Logic (reuse from community.html) ---
+    async function fetchFriends() {
+      if (!currentUser) return;
+      const res = await fetch(`${API_URL}/api/friends?username=${encodeURIComponent(currentUser)}`);
+      const data = await res.json();
+      renderFriends(data.friends || []);
+    }
+    function renderFriends(friendsArr) {
+      const ul = document.getElementById('friendsList');
+      ul.innerHTML = '';
+      (friendsArr || []).forEach(friend => {
+        ul.innerHTML += `<li class="flex items-center gap-3"><span class="w-3 h-3 bg-green-400 rounded-full inline-block"></span> <span class="font-medium">${friend}</span></li>`;
+      });
+    }
+    async function searchFriends(query) {
+      if (!query) return [];
+      const res = await fetch(`${API_URL}/api/friends/search?query=${encodeURIComponent(query)}&username=${encodeURIComponent(currentUser)}`);
+      const data = await res.json();
+      return data.users || [];
+    }
+    document.getElementById('addFriendForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('friendSearchInput');
+      const username = input.value.trim();
+      if (!username) return;
+      const res = await fetch(`${API_URL}/api/friends/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentUser, friend: username })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || 'Failed to add friend');
+        return;
+      }
+      fetchFriends();
+      input.value = '';
+      document.getElementById('friendSearchResults').innerHTML = '';
+    });
+    document.getElementById('friendSearchInput').addEventListener('input', async function(e) {
+      const query = e.target.value.trim();
+      const results = await searchFriends(query);
+      const resultsDiv = document.getElementById('friendSearchResults');
+      if (results.length === 0) {
+        resultsDiv.innerHTML = '';
+        return;
+      }
+      resultsDiv.innerHTML = '<div class="bg-gray-100 rounded p-2 shadow text-sm">' + results.map(name => `<div class=\"py-1 cursor-pointer hover:bg-blue-100 px-2 rounded\" onclick=\'addSearchedFriend(\"${name}\")\'>${name}</div>`).join('') + '</div>';
+    });
+    window.addSearchedFriend = async function(name) {
+      const res = await fetch(`${API_URL}/api/friends/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentUser, friend: name })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || 'Failed to add friend');
+        return;
+      }
+      fetchFriends();
+      document.getElementById('friendSearchInput').value = '';
+      document.getElementById('friendSearchResults').innerHTML = '';
+    };
+    window.addEventListener('DOMContentLoaded', fetchFriends);
   </script>
 </body>
 </html>
+

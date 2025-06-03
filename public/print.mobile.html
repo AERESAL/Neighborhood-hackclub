@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="dashboard-theme.css">
   <script src="dashboard-theme.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
   <style>
     :root {
       --accent: #2563eb;
@@ -401,6 +403,13 @@
       mobileMenuBtn.addEventListener('click', openMobileSidebar);
       closeMobileSidebar.addEventListener('click', closeSidebar);
       mobileSidebarOverlay.addEventListener('click', closeSidebar);
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
     }
   </script>
 </body>

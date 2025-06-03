@@ -172,6 +172,19 @@
       window.location.href = 'dashboard.html';
     }
   })();
+
+  // Mobile redirect logic
+  (function() {
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var path = window.location.pathname;
+    if (isMobile) {
+      if (path.endsWith('/login.html')) window.location.replace('login.mobile.html');
+      if (path.endsWith('/signup.html')) window.location.replace('signup.mobile.html');
+      if (path.endsWith('/dashboard.html')) window.location.replace('dashboard.mobile.html');
+      if (path.endsWith('/community.html')) window.location.replace('community.mobile.html');
+      if (path.endsWith('/print.html')) window.location.replace('print.mobile.html');
+    }
+  })();
 </script>
 </head>
 <body>

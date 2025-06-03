@@ -3,58 +3,259 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VolunteerHub Login (Mobile)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="dashboard-theme.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <title>Login | VolunteerHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Lexend Deca, Montserrat, Arial, sans-serif; background: #f7f7f7; margin: 0; min-height: 100vh; }
-    .container { max-width: 360px; margin: 60px auto 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; padding: 32px 18px 24px 18px; }
-    .accent-btn { background: var(--accent, #2563eb); color: #fff; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 600; font-size: 15px; transition: background 0.2s; }
-    .accent-btn:hover { background: #1e40af; }
-    .logo { width: 60px; margin: 0 auto 18px auto; display: block; }
-    @media (max-width: 500px) { .container { max-width: 98vw; margin: 32px auto 0 auto; padding: 18px 4vw 18px 4vw; } }
+    /* Full Page & Background */
+body {
+  font-family: Lexend Deca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+h2 {
+  color: #ff7e5f;
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+p {
+  color: #333;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+#backgroundVideo {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/* Login Container */
+.login-container {
+  background: rgba(255, 255, 255);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+  text-align: center;
+  width: 500px;
+  height: 75vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: fadeIn 1s forwards;
+
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Logo */
+.logo {
+  width: 160px;
+  margin-left: 170px;
+  border-radius: 100%;
+}
+
+/* Input Fields */
+input {
+  width: 95%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  height: 20px;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+
+/* Login Button */
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff7e5f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #eb5e3f;
+}
+
+/* Signup Link */
+.signup-link {
+  margin-top: 10px;
+}
+
+input#rememberMe {
+  margin-right: 10px;
+  width: 15px;
+  height:15px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
+
+/* Error Notification */
+.notification {
+  position: fixed;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: red;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  opacity: 0;
+  transition: all 0.7s ease-in-out;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Or min-height */
+  padding: 10px;
+}
+
+footer {
+  align-self: flex-end; /* This is optional for alignment */
+  position: absolute;
+  bottom: 0;
+  padding: 10px;
+  background-color: rgba(255, 196, 120, 0.1);
+  border-radius: 20%;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+
+}
+
+p#descrip {
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+      .login-container {
+        width: 98vw;
+        min-width: unset;
+        max-width: 99vw;
+        height: auto;
+        padding: 16px 4px;
+        border-radius: 0;
+        margin: 0 auto !important;
+        align-items: center;
+      }
+      .logo {
+        width: 90px;
+        margin: 0 auto 10px auto;
+      }
+      h2 {
+        font-size: 2rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+      input {
+        font-size: 1rem;
+        padding: 8px;
+      }
+      button {
+        font-size: 1rem;
+        padding: 10px 0;
+      }
+      .signup-link {
+        font-size: 1rem;
+      }
+      .social-container img {
+        width: 32px !important;
+        height: 32px !important;
+      }
+      footer {
+        position: static;
+        padding: 8px 0 0 0;
+        border-radius: 0;
+        background: none;
+      }
+    }
+    /* Also center the login-container on mobile */
+    @media (max-width: 600px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+    }
   </style>
+  <script>
+  // Redirect to dashboard if already authenticated
+  (function() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      window.location.href = 'dashboard.html';
+    }
+  })();
+</script>
 </head>
 <body>
-  <div class="container">
-    <img src="logo192.png" alt="VolunteerHub Logo" class="logo">
-    <h2 class="text-2xl font-bold text-center mb-4">VolunteerHub Login</h2>
-    <form id="loginForm" class="flex flex-col gap-4">
-      <input type="text" id="username" name="username" class="border rounded px-3 py-2" placeholder="Username" required autocomplete="username">
-      <input type="password" id="password" name="password" class="border rounded px-3 py-2" placeholder="Password" required autocomplete="current-password">
-      <button type="submit" class="accent-btn w-full">Log In</button>
+  <!-- Background Video -->
+  <video autoplay muted loop id="backgroundVideo">
+    <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
+  </video>
+
+  <!-- Login Card -->
+  <div class="login-container">
+    <img src="https://placehold.co/600x600" alt="VolunteerHub Logo" class="logo"> <!-- Add your logo here -->
+    <h2>VolunteerHub</h2>
+    <p>Volunteer Login</p>
+
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username or Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+
+      <label>
+        <input type="checkbox" id="rememberMe"> Remember Me
+      </label>
+      <button type="submit">Login</button>
     </form>
-    <div id="loginStatus" class="text-center text-red-500 mt-2"></div>
-    <div class="text-center mt-4 text-sm">
-      Don't have an account? <a href="signup.mobile.html" class="text-blue-600 font-semibold">Sign up</a>
-    </div>
+
+    <p class="signup-link">Don’t have an account yet? <a href="signup.html">Click Here</a></p>
+    <p id="descrip">This Web Application was created by Sai Seelam as a project for the Hack Club Neigborhood. Feel free to contact me via instagram if something isn't working or you have suggestions.</a></p>
+
+    <!-- Error Notification -->
+    <div id="errorNotification" class="notification"></div>
   </div>
+  <footer>
+    <div class ="social-container">
+  <a href="https://www.instagram.com/saitrseelam/"><img src=https://cdn4.iconfinder.com/data/icons/picons-social/57/38-instagram-2-512.png alt="Instagram" style="width:42px;height:42px;" class ="Icon"></a>
+  <a href="https://github.com/AERESAL"><img src="https://img.icons8.com/?size=256&id=106564&format=png" alt="GitHub" style="width:42px;height:42px;" class = "Icon"></a>
+  </div>
+  </footer>
   <script src="auth.js"></script>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('username', username);
-        window.location.href = 'dashboard.mobile.html';
-      } else {
-        document.getElementById('loginStatus').textContent = data.message || 'Login failed.';
-      }
-    });
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
-  </script>
 </body>
 </html>

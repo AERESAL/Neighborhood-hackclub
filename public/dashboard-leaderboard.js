@@ -36,6 +36,23 @@ async function fetchAndRenderLeaderboard(type = 'global') {
   }
 }
 
+// Expose a function to render leaderboard into any tbody
+window.renderLeaderboardTable = function(tbody, leaderboard) {
+  if (!tbody) return;
+  if (!leaderboard || !leaderboard.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 py-4">No data.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = leaderboard.map((entry, idx) => `
+    <tr>
+      <td class="px-6 py-4">${idx + 1}</td>
+      <td class="px-6 py-4">${entry.displayName || entry.username || entry.name || ''}</td>
+      <td class="px-6 py-4">${entry.approvedHours ?? entry.approved ?? ''}</td>
+      <td class="px-6 py-4">${entry.unapprovedHours ?? entry.unapproved ?? ''}</td>
+    </tr>
+  `).join('');
+}
+
 globalLeaderboardBtn.addEventListener('click', () => {
   currentLeaderboard = 'global';
   globalLeaderboardBtn.classList.add('bg-blue-600');

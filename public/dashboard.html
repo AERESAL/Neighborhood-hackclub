@@ -288,7 +288,17 @@
 </div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget4">
   <div class="corner-br"></div>
-  Widget 4
+  <div class="text-lg font-semibold mb-1">Leaderboard</div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-xs">
+      <thead>
+        <tr>
+          <th>Rank</th><th>Volunteer</th><th>Approved</th><th>Unapproved</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardWidgetBody"><tr><td colspan="4">Loading...</td></tr></tbody>
+    </table>
+  </div>
 </div>
         </div>
 
@@ -373,7 +383,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
-    // Mobile redirect logic
+    // API URL logic for widgets and leaderboard widget
+const API_URL_LOCAL = "http://localhost:3000";
+const API_URL_PROD = "https://neighborhood-liard.vercel.app";
+window.API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+  ? API_URL_LOCAL
+  : API_URL_PROD;
+
+// Mobile redirect logic
     (function() {
       var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       var path = window.location.pathname;
@@ -436,6 +453,40 @@ addWidgetButton.addEventListener('click', function() {
     alert('Widget not found in library.');
   }
 });
+
+// Leaderboard widget population logic
+function renderLeaderboardWidget() {
+  const tbody = document.getElementById('leaderboardWidgetBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+  let url = (window.API_URL ? window.API_URL : 'http://localhost:3000') + '/leaderboard';
+  fetch(url, { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+      const leaderboard = data.leaderboard || data || [];
+      if (window.renderLeaderboardTable) {
+        window.renderLeaderboardTable(tbody, leaderboard);
+      } else {
+        // fallback rendering
+        if (!leaderboard.length) {
+          tbody.innerHTML = '<tr><td colspan="4">No data</td></tr>';
+          return;
+        }
+        tbody.innerHTML = leaderboard.map((row, i) =>
+          `<tr><td>${i+1}</td><td>${row.displayName || row.name || row.username || ''}</td><td>${row.approvedHours ?? row.approved ?? ''}</td><td>${row.unapprovedHours ?? row.unapproved ?? ''}</td></tr>`
+        ).join('');
+      }
+    })
+    .catch(() => {
+      tbody.innerHTML = '<tr><td colspan="4">Error loading leaderboard</td></tr>';
+    });
+}
+
+if (document.getElementById('leaderboardWidgetBody')) {
+  renderLeaderboardWidget();
+}
     </script>
 </body>
 </html>
+
+

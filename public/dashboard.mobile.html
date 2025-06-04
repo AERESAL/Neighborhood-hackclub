@@ -90,6 +90,11 @@
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
+  <script>
+    // Ensure currentUsername and token are set for activities fetching
+    window.currentUsername = window.currentUsername || localStorage.getItem('username');
+    window.token = window.token || localStorage.getItem('token');
+  </script>
   <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
     <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
   </video>
@@ -158,15 +163,9 @@
         <div class="mt-2 text-lg font-bold text-green-600 hidden" id="approvedHoursDisplay"></div>
         <div class="mt-2 text-lg font-bold text-red-500 hidden" id="unapprovedHoursDisplay"></div>
       </div>
-      <h2 class="text-xl font-bold text-gray-800 mb-3" style="margin-top:0 !important;">Dashboard</h2>
-      <!-- Activities Section (reuse logic) -->
-      <section id="activitiesSection" class="mt-6 bg-white bg-opacity-80 rounded-md shadow-md p-3">
-        <h2 class="text-lg font-bold text-gray-800">Activities</h2>
-        <button id="addActivityBtn" class="accent-btn my-2">Add Activity</button>
-        <div id="activityStatus" class="mb-2"></div>
-        <div id="activitiesList"></div>
-        <button id="printActivitiesBtn" style="margin:12px 0; display:none;" class="accent-btn">Print Activities PDF</button>
-      </section>
+      <button id="addActivityBtn" class="accent-btn my-2 w-full max-w-xs mx-auto flex justify-center items-center">Add Activity</button>
+      <div id="activityStatus" class="mb-2"></div>
+      <div id="activitiesList" class="w-full"></div>
       <!-- Leaderboard Section (reuse logic) -->
       <section id="leaderboardSection" class="mt-6 bg-white bg-opacity-80 rounded-md shadow-md p-3">
         <h2 class="text-lg font-bold text-gray-800">Leaderboard</h2>
@@ -261,7 +260,7 @@
     function showApproved() {
       hoursPieChart.style.display = 'none';
       pieChartLegend.style.display = 'none';
-      approvedHoursDisplay.style.display = '';
+      approvedHoursDisplay.style.display = 'block';
       unapprovedHoursDisplay.style.display = 'none';
       approvedHoursDisplay.textContent = `Approved Hours: ${approvedCache.toFixed(2)}`;
     }
@@ -269,7 +268,7 @@
       hoursPieChart.style.display = 'none';
       pieChartLegend.style.display = 'none';
       approvedHoursDisplay.style.display = 'none';
-      unapprovedHoursDisplay.style.display = '';
+      unapprovedHoursDisplay.style.display = 'block';
       unapprovedHoursDisplay.textContent = `Unapproved Hours: ${unapprovedCache.toFixed(2)}`;
     }
     function setPieChartState(state) {
@@ -355,3 +354,5 @@
   </script>
 </body>
 </html>
+
+

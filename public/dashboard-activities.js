@@ -36,16 +36,11 @@ function renderActivitiesSection(activities) {
   let unapprovedActivities = 0;
 
   if (!activities || activities.length === 0) {
-    activitiesList.innerHTML = '<div class="text-gray-400">No activities found.</div>';
-    document.getElementById('printActivitiesBtn').style.display = 'none';
-    document.getElementById('approvedHours').textContent = 0;
-    document.getElementById('unapprovedHours').textContent = 0;
-    document.getElementById('approvedActivities').textContent = 0;
-    document.getElementById('unapprovedActivities').textContent = 0;
+    activitiesList.innerHTML = '<div class="text-gray-400 text-center py-8">No activities found.</div>';
     return;
   }
 
-  let html = '<ul class="space-y-4">';
+  let html = '<ul class="flex flex-col gap-4">';
   activities.forEach(act => {
     // Calculate hours
     let hours = 0;
@@ -57,34 +52,49 @@ function renderActivitiesSection(activities) {
       hours = (endDate - startDate) / (1000 * 60 * 60);
       if (hours < 0) hours += 24; // handle overnight
     }
-    if (act.approved) {
+    // Ensure approved property is always boolean
+    const isApproved = typeof act.approved === 'boolean' ? act.approved : false;
+    if (isApproved) {
       approvedHours += hours;
       approvedActivities++;
     } else {
       unapprovedHours += hours;
       unapprovedActivities++;
     }
-    html += `<li class="border-b pb-2 relative group">
-      <b>${act.name || act.title}</b> (${act.date})<br>
-      ${act.start_time || ''} - ${act.end_time || ''} @ ${act.location || act.place || ''}<br>
-      Supervisor: ${act.supervisorName || ''} (${act.supervisorEmail || ''})<br>
-      Status: <span class="${act.approved ? 'text-green-600' : 'text-yellow-600'}">${act.approved ? 'Approved' : 'Unapproved'}</span>
-      <button class="activity-options-btn absolute top-2 right-2 opacity-70 group-hover:opacity-100 p-1 rounded hover:bg-gray-200" title="Options">
-        <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='currentColor' viewBox='0 0 20 20'><circle cx='4' cy='10' r='2'/><circle cx='10' cy='10' r='2'/><circle cx='16' cy='10' r='2'/></svg>
-      </button>
-      <div class="activity-options-menu hidden absolute right-8 top-2 bg-white border rounded shadow z-10 min-w-[140px]">
-        <button class="delete-activity-btn block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100" data-id="${act.id || ''}">Delete</button>
-        <button class="request-signature-btn block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100" data-id="${act.id || ''}" data-title="${encodeURIComponent(act.name || act.title || '')}" data-email="${encodeURIComponent(act.supervisorEmail || '')}">Request Signature</button>
-      </div>
-    </li>`;
+    html += `
+      <li class="bg-white rounded-xl shadow-md px-4 py-3 flex flex-col gap-1 border border-gray-100 relative">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${isApproved ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">
+            ${isApproved ? '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-5 h-5\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 13l4 4L19 7\' /></svg>' : '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-5 h-5\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 8v4l3 3\' /></svg>'}
+          </span>
+          <span class="font-semibold text-base text-gray-800">${act.name || act.title}</span>
+          <span class="ml-auto text-xs px-2 py-1 rounded ${isApproved ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}">${isApproved ? 'Approved' : 'Unapproved'}</span>
+        </div>
+        <div class="text-sm text-gray-600 flex flex-wrap gap-2 items-center">
+          <span><svg class="inline w-4 h-4 mr-1 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> ${act.date}</span>
+          <span><svg class="inline w-4 h-4 mr-1 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg> ${act.start_time || ''} - ${act.end_time || ''}</span>
+          <span><svg class="inline w-4 h-4 mr-1 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 12.414a2 2 0 00-2.828 0l-4.243 4.243"/></svg> ${act.location || act.place || ''}</span>
+        </div>
+        <div class="text-xs text-gray-500 mt-1">Supervisor: ${act.supervisorName || ''} (${act.supervisorEmail || ''})</div>
+        <div class="text-xs text-gray-500">Hours: ${hours.toFixed(2)}</div>
+        <div class="absolute top-2 right-2 flex gap-1">
+          <button class="activity-options-btn p-1 rounded hover:bg-gray-100" title="Options">
+            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='currentColor' viewBox='0 0 20 20'><circle cx='4' cy='10' r='2'/><circle cx='10' cy='10' r='2'/><circle cx='16' cy='10' r='2'/></svg>
+          </button>
+          <div class="activity-options-menu hidden absolute right-0 top-8 bg-white border rounded shadow z-10 min-w-[140px]">
+            <button class="delete-activity-btn block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100" data-id="${act.id || ''}">Delete</button>
+            <button class="request-signature-btn block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100" data-id="${act.id || ''}" data-title="${encodeURIComponent(act.name || act.title || '')}" data-email="${encodeURIComponent(act.supervisorEmail || '')}">Request Signature</button>
+          </div>
+        </div>
+      </li>`;
   });
   html += '</ul>';
   activitiesList.innerHTML = html;
-  document.getElementById('printActivitiesBtn').style.display = 'inline-block';
-  document.getElementById('approvedHours').textContent = approvedHours;
-  document.getElementById('unapprovedHours').textContent = unapprovedHours;
-  document.getElementById('approvedActivities').textContent = approvedActivities;
-  document.getElementById('unapprovedActivities').textContent = unapprovedActivities;
+  // document.getElementById('printActivitiesBtn').style.display = 'inline-block';
+  if (document.getElementById('approvedHours')) document.getElementById('approvedHours').textContent = approvedHours;
+  if (document.getElementById('unapprovedHours')) document.getElementById('unapprovedHours').textContent = unapprovedHours;
+  if (document.getElementById('approvedActivities')) document.getElementById('approvedActivities').textContent = approvedActivities;
+  if (document.getElementById('unapprovedActivities')) document.getElementById('unapprovedActivities').textContent = unapprovedActivities;
 
   // Options menu logic
   document.querySelectorAll('.activity-options-btn').forEach((btn, idx) => {
@@ -275,3 +285,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+

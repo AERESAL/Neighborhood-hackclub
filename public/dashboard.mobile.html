@@ -154,8 +154,10 @@
         <h1 id="greeting" class="text-2xl font-bold"></h1>
         <p id="currentDate" class="text-base mt-1"></p>
       </div>
-      <div class="mb-4 flex flex-col items-center justify-center" id="pieChartContainer" style="touch-action: pan-y;">
-        <canvas id="hoursPieChart" width="180" height="120" style="max-width:90vw;"></canvas>
+      <div class="mb-4 flex flex-col items-center justify-center overflow-x-auto" id="pieChartContainer" style="touch-action: pan-y; min-width:100vw;">
+        <div style="display:flex;justify-content:center;width:100%;min-width:100vw;">
+          <canvas id="hoursPieChart" width="520" height="320" style="width:130vw;max-width:130vw;min-width:320px;"></canvas>
+        </div>
         <div class="flex gap-4 mt-2 text-xs text-gray-700" id="pieChartLegend">
           <span class="flex items-center"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4ade80;margin-right:5px;"></span>Approved</span>
           <span class="flex items-center"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f87171;margin-right:5px;"></span>Unapproved</span>
@@ -196,6 +198,11 @@
     function animatePieChart(approved, unapproved) {
       const canvas = document.getElementById('hoursPieChart');
       if (!canvas) return;
+      // Dynamically set canvas width to 130vw on every draw for true responsiveness
+      const vw = Math.min(window.innerWidth, 600); // cap for very large screens
+      const pxWidth = Math.floor(window.innerWidth * 1.3);
+      canvas.width = pxWidth;
+      canvas.height = Math.floor(canvas.width * 2/3); // keep aspect ratio
       const ctx = canvas.getContext('2d');
       const total = approved + unapproved;
       let start = 0;
@@ -206,17 +213,19 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       function drawPie(approvedAngle, unapprovedAngle) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Responsive radius
+        const radius = Math.min(canvas.width, canvas.height) / 2 - 10;
         // Approved
         ctx.beginPath();
         ctx.moveTo(canvas.width/2, canvas.height/2);
-        ctx.arc(canvas.width/2, canvas.height/2, 55, 0, approvedAngle, false);
+        ctx.arc(canvas.width/2, canvas.height/2, radius, 0, approvedAngle, false);
         ctx.closePath();
         ctx.fillStyle = '#4ade80';
         ctx.fill();
         // Unapproved
         ctx.beginPath();
         ctx.moveTo(canvas.width/2, canvas.height/2);
-        ctx.arc(canvas.width/2, canvas.height/2, 55, approvedAngle, approvedAngle + unapprovedAngle, false);
+        ctx.arc(canvas.width/2, canvas.height/2, radius, approvedAngle, approvedAngle + unapprovedAngle, false);
         ctx.closePath();
         ctx.fillStyle = '#f87171';
         ctx.fill();
@@ -229,7 +238,7 @@
       }
       let step = 0;
       function animate() {
-        step += 0.06;
+        step += 0.02; // Slower animation (was 0.06)
         approvedCurrent = Math.min(approvedTarget, approvedTarget * step);
         unapprovedCurrent = Math.min(unapprovedTarget, unapprovedTarget * step);
         drawPie(approvedCurrent, unapprovedCurrent);
@@ -326,10 +335,6 @@
         updatePieChartFromActivities();
       };
     })();
-    // Initial chart (in case no activities loaded yet)
-    document.addEventListener('DOMContentLoaded', function() {
-      animatePieChart(0, 0);
-    });
     // Mobile sidebar open/close logic
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileSidebar = document.getElementById('mobileSidebar');

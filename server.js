@@ -253,7 +253,8 @@ app.post('/activities', authenticateJWT, async (req, res) => {
       end_time,
       location,
       supervisorName,
-      supervisorEmail
+      supervisorEmail,
+      approved: false // Always set approved property for new activities
     };
     activitiesArr.push(newActivity);
     await activitiesRef.set({ activities: activitiesArr }, { merge: true });
@@ -597,13 +598,15 @@ const upload = multer({
 });
 
 // In-memory posts fallback (for demo, replace with Firestore for production)
-let communityPosts = [];
+// let communityPosts = [];
 
 // GET /api/community-posts - Get all posts
 app.get('/api/community-posts', async (req, res) => {
   try {
-    // TODO: Replace with Firestore fetch
-    res.json({ posts: communityPosts });
+    // Fetch posts from Firestore
+    const postsSnap = await db.collection('communityPosts').orderBy('createdAt', 'desc').get();
+    const posts = postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ posts });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch posts.' });
   }
@@ -624,38 +627,39 @@ app.post('/api/community-posts', upload.single('image'), async (req, res) => {
         metadata: { contentType: req.file.mimetype },
         public: true
       });
-      // Make file public and get URL
       await file.makePublic();
       imageUrl = file.publicUrl();
     }
     const post = {
-      id: Date.now().toString(),
       content,
       author,
       imageUrl,
       createdAt: new Date().toISOString()
     };
-    // TODO: Replace with Firestore save
-    communityPosts.unshift(post);
-    res.status(201).json({ post });
+    // Save to Firestore
+    const docRef = await db.collection('communityPosts').add(post);
+    res.status(201).json({ post: { id: docRef.id, ...post } });
   } catch (err) {
     res.status(500).json({ message: 'Failed to create post.' });
   }
 });
 
 // DELETE /api/community-posts/:id - Delete a post by ID (only by author)
-app.delete('/api/community-posts/:id', (req, res) => {
+app.delete('/api/community-posts/:id', async (req, res) => {
   const postId = req.params.id;
-  // Accept username from query, body, or headers
   const username = req.query.username || req.body?.username || req.headers['x-username'] || req.headers['username'] || '';
-  // Find the post
-  const idx = communityPosts.findIndex(p => p.id === postId);
-  if (idx === -1) return res.status(404).json({ message: 'Post not found.' });
-  if (!username || communityPosts[idx].author !== username) {
-    return res.status(403).json({ message: 'Not authorized to delete this post.' });
+  try {
+    const postDoc = await db.collection('communityPosts').doc(postId).get();
+    if (!postDoc.exists) return res.status(404).json({ message: 'Post not found.' });
+    const postData = postDoc.data();
+    if (!username || postData.author !== username) {
+      return res.status(403).json({ message: 'Not authorized to delete this post.' });
+    }
+    await db.collection('communityPosts').doc(postId).delete();
+    res.json({ message: 'Post deleted.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete post.' });
   }
-  communityPosts.splice(idx, 1);
-  res.json({ message: 'Post deleted.' });
 });
 
 // Serve uploaded images statically

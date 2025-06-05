@@ -359,6 +359,16 @@
     window.addEventListener('DOMContentLoaded', fetchFriends);
   </script>
   <script>
+    // Redirect to mobile community if on mobile device and not already on mobile version
+    (function() {
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var path = window.location.pathname;
+      if (isMobile && path.endsWith('/community.html')) {
+        window.location.replace('community.mobile.html');
+      }
+    })();
+  </script>
+  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('service-worker.js');

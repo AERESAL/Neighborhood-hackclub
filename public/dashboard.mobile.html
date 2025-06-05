@@ -19,8 +19,10 @@
       background: #f7f7f7;
       margin: 0;
       min-height: 100vh;
+      padding-bottom: 64px !important;
     }
     main.flex-1.p-2[style], main.flex-1.p-2 {
+      margin-bottom: 64px !important; /* Add space for bottom header */
       margin-top: 0 !important;
       padding-top: 0 !important;
     }
@@ -46,7 +48,16 @@
     .accent-btn:hover {
       background: #1e40af;
     }
-    header { position: static !important; width: 100vw !important; }
+    header {
+      position: fixed !important;
+      width: 100vw !important;
+      bottom: 0 !important;
+      top: unset !important;
+      left: 0;
+      z-index: 9999;
+      background: #fff;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    }
     aside#mobileSidebar {
       position: fixed !important;
       top: 50% !important;
@@ -108,13 +119,17 @@
   <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
     <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
   </video>
-  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed top-0 left-0">
-    <button id="mobileMenuBtn" class="mr-2 flex items-center justify-center w-10 h-10" aria-label="Open menu">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed bottom-0 left-0" style="height:64px;">
+    <a href="community.mobile.html" aria-label="Community" class="flex items-center justify-center w-10 h-10">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" class="themed-icon" aria-hidden="true">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
       </svg>
-    </button>
-    <h1 class="flex-1 text-lg font-bold text-gray-700 text-center">VolunteerHub</h1>
+    </a>
+    <a href="dashboard.mobile.html" aria-label="Home" class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 bg-white rounded-full shadow-lg border-2 border-blue-500 z-10" style="top:-18px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="themed-icon text-blue-600" aria-hidden="true">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+      </svg>
+    </a>
     <div class="relative flex items-center gap-2 ml-auto">
       <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
       <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
@@ -136,7 +151,8 @@
       <ul class="space-y-4 w-full flex flex-col items-center">
         <li class="w-4/5"><a href="dashboard.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/></svg>Dashboard</a></li>
         <li class="w-4/5"><a href="community.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>Community</a></li>
-        <li class="w-4/5"><a href="settings.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>Settings</a></li>
+        <li class="w-4/5"><a href="settings.mobile.html" class="flex items-center gap-2 justify-center px-6 py-3 text-gray-700 hover:bg-gray-300 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="themed-icon" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>Settings</a></li>
       </ul>
     </nav>
     <div class="flex items-center justify-center gap-4 mb-4 px-6 mt-8 w-full">
@@ -468,5 +484,6 @@
   </script>
 </body>
 </html>
+
 
 

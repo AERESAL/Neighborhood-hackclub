@@ -19,6 +19,7 @@
       background: #f7f7f7;
       margin: 0;
       min-height: 100vh;
+      padding-bottom: 64px !important;
     }
     main.flex-1.p-2[style], main.flex-1.p-2 {
       margin-top: 0 !important;
@@ -89,27 +90,11 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body class="bg-gray-100 flex flex-col min-h-screen" style="padding-bottom:64px !important;">
   <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100vw;height:100vh;object-fit:cover;z-index:-1;display:none;">
     <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
   </video>
-  <header class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed top-0 left-0">
-    <button id="mobileMenuBtn" class="mr-2 flex items-center justify-center w-10 h-10" aria-label="Open menu">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
-    <h1 class="flex-1 text-lg font-bold text-gray-700 text-center">VolunteerHub</h1>
-    <div class="relative flex items-center gap-2 ml-auto">
-      <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
-      <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
-        <ul class="py-2 text-sm" id="profileMenuList">
-          <li><a href="#" class="block px-4 py-2">Profile</a></li>
-          <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
-        </ul>
-      </div>
-    </div>
-  </header>
+  <!-- Removed top header for mobile, only bottom nav remains -->
   <!-- Mobile Sidebar Menu -->
   <div id="mobileSidebarOverlay" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden"></div>
   <aside id="mobileSidebar">
@@ -143,7 +128,7 @@
       <button id="sidebarLogoutBtn" class="w-full accent-btn">Log Out</button>
     </div>
   </aside>
-  <main class="flex-1 p-2 relative z-0" style="padding-top:60px;">
+  <main class="flex-1 p-2 relative z-0" style="padding-top:60px;margin-bottom:64px !important;">
     <div class="container">
       <h2 class="text-xl font-bold text-gray-800 mb-3">Community</h2>
       <!-- Tabs -->
@@ -174,6 +159,27 @@
       </div>
     </div>
   </main>
+  <footer class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed bottom-0 left-0" style="height:64px;">
+    <a href="community.mobile.html" aria-label="Community" class="flex items-center justify-center w-10 h-10 ml-4">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" class="themed-icon" aria-hidden="true">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
+      </svg>
+    </a>
+    <a href="dashboard.mobile.html" aria-label="Home" class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 bg-white rounded-full shadow-lg border-2 border-blue-500 z-10" style="top:-18px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="themed-icon themed-icon-active text-blue-600" aria-hidden="true">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+      </svg>
+    </a>
+    <div class="relative flex items-center gap-2 ml-auto mr-4">
+      <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
+      <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
+        <ul class="py-2 text-sm" id="profileMenuList">
+          <li><a href="#" class="block px-4 py-2">Profile</a></li>
+          <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
   <script src="dashboard-theme.js"></script>
   <script src="dashboard-core.js"></script>
   <script src="dashboard-ui.js"></script>

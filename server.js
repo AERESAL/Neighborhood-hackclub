@@ -233,8 +233,10 @@ app.post('/add-activity', authenticateJWT, async (req, res) => {
 // Add Activity to 'activities' collection, one document per user (JWT protected)
 app.post('/activities', authenticateJWT, async (req, res) => {
   try {
+    console.log('POST /activities incoming body:', req.body);
     const { name, date, start_time, end_time, location, supervisorName, supervisorEmail } = req.body;
     if (!name || !date || !start_time || !end_time || !location || !supervisorName || !supervisorEmail) {
+      console.error('Missing required activity fields', req.body);
       return res.status(400).json({ message: 'Missing required activity fields' });
     }
     // The document name is the username
@@ -260,7 +262,7 @@ app.post('/activities', authenticateJWT, async (req, res) => {
     await activitiesRef.set({ activities: activitiesArr }, { merge: true });
     res.status(201).json({ message: 'Activity added successfully' });
   } catch (error) {
-    console.error('Add activity error', error);
+    console.error('Add activity error', error, req.body);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -156,7 +156,7 @@
       </div>
       <div class="mb-4 flex flex-col items-center justify-center overflow-x-auto" id="pieChartContainer" style="touch-action: pan-y; min-width:100vw;">
         <div style="display:flex;justify-content:center;width:100%;min-width:100vw;">
-          <canvas id="hoursPieChart" width="520" height="320" style="width:130vw;max-width:130vw;min-width:320px;"></canvas>
+          <canvas id="hoursPieChart" width="320" height="220" style="width:95vw;max-width:400px;min-width:220px;"></canvas>
         </div>
         <div class="flex gap-4 mt-2 text-xs text-gray-700" id="pieChartLegend">
           <span class="flex items-center"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4ade80;margin-right:5px;"></span>Approved</span>
@@ -166,8 +166,38 @@
         <div class="mt-2 text-lg font-bold text-red-500 hidden" id="unapprovedHoursDisplay"></div>
       </div>
       <button id="addActivityBtn" class="accent-btn my-2 w-full max-w-xs mx-auto flex justify-center items-center">Add Activity</button>
+      <!-- Add Activity Modal (matches dashboard.html, reduced width) -->
+      <div id="addActivityModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 relative w-full max-w-sm">
+          <button id="closeAddActivityModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+          <form id="addActivityForm" class="space-y-4 mb-4">
+            <div class="flex flex-wrap gap-4">
+              <input type="text" id="activityTitle" name="title" placeholder="Title" class="border rounded px-3 py-2 flex-1" required>
+              <input type="text" id="activityPlace" name="place" placeholder="Place" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <input type="date" id="activityDate" name="date" class="border rounded px-3 py-2 flex-1" required>
+              <input type="time" id="activityStartTime" name="start_time" class="border rounded px-3 py-2 flex-1" required>
+              <input type="time" id="activityEndTime" name="end_time" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <input type="text" id="supervisorName" name="supervisor_name" placeholder="Supervisor Name" class="border rounded px-3 py-2 flex-1" required>
+              <input type="email" id="supervisorEmail" name="supervisor_email" placeholder="Supervisor Email" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex items-center mb-2">
+              <input type="checkbox" id="getSignatureCheckbox" name="get_signature" class="mr-2">
+              <label for="getSignatureCheckbox" class="text-gray-700">Get a Signature (email supervisor)</label>
+            </div>
+            <div class="flex gap-4">
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Submit</button>
+              <button type="button" id="cancelAddActivity" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+            </div>
+            <div id="addActivityError" class="text-red-500 mt-2 text-sm hidden"></div>
+          </form>
+        </div>
+      </div>
       <div id="activityStatus" class="mb-2"></div>
-      <div id="activitiesList" class="w-full"></div>
+      <div id="activitiesList" class="w-full min-h-[40px]"></div>
       <!-- Leaderboard Section (reuse logic) -->
       <section id="leaderboardSection" class="mt-6 bg-white bg-opacity-80 rounded-md shadow-md p-3">
         <h2 class="text-lg font-bold text-gray-800">Leaderboard</h2>
@@ -333,6 +363,7 @@
         window._lastActivitiesList = activities || [];
         if (origRender) origRender.apply(this, arguments);
         updatePieChartFromActivities();
+        setPieChartState(0); // Always show pie chart after activities load
       };
     })();
     // Mobile sidebar open/close logic
@@ -356,6 +387,73 @@
         navigator.serviceWorker.register('service-worker.js');
       });
     }
+    // Add Activity Modal logic (update for new form fields)
+    const addActivityBtn = document.getElementById('addActivityBtn');
+    const addActivityModal = document.getElementById('addActivityModal');
+    const closeAddActivityModal = document.getElementById('closeAddActivityModal');
+    const addActivityForm = document.getElementById('addActivityForm');
+    const addActivityError = document.getElementById('addActivityError');
+    const cancelAddActivity = document.getElementById('cancelAddActivity');
+    function showAddActivityModal() {
+      addActivityModal.classList.remove('hidden');
+      addActivityError.classList.add('hidden');
+      addActivityForm.reset();
+    }
+    function hideAddActivityModal() {
+      addActivityModal.classList.add('hidden');
+    }
+    addActivityBtn.addEventListener('click', showAddActivityModal);
+    closeAddActivityModal.addEventListener('click', hideAddActivityModal);
+    cancelAddActivity.addEventListener('click', hideAddActivityModal);
+    addActivityModal.addEventListener('click', function(e) {
+      if (e.target === addActivityModal) hideAddActivityModal();
+    });
+    addActivityForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      addActivityError.classList.add('hidden');
+      const formData = new FormData(addActivityForm);
+      const data = {
+        name: formData.get('title'),
+        location: formData.get('place'),
+        date: formData.get('date'),
+        start_time: formData.get('start_time'),
+        end_time: formData.get('end_time'),
+        supervisorName: formData.get('supervisor_name'),
+        supervisorEmail: formData.get('supervisor_email'),
+        approved: false // always set for new activities
+      };
+      try {
+        const res = await fetch('/activities', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': window.token ? `Bearer ${window.token}` : ''
+          },
+          body: JSON.stringify(data)
+        });
+        let err;
+        if (!res.ok) {
+          try {
+            err = await res.json();
+          } catch (e) {
+            err = { message: 'Failed to add activity (server error)' };
+          }
+          throw new Error(err.message || 'Failed to add activity');
+        }
+        hideAddActivityModal();
+        if (window.fetchAndRenderActivities) window.fetchAndRenderActivities();
+        setPieChartState(0); // Show pie chart after adding
+      } catch (err) {
+        addActivityError.textContent = err.message;
+        addActivityError.classList.remove('hidden');
+      }
+    });
+    // Ensure activities list loads on page load (for mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.fetchAndRenderActivities) {
+        window.fetchAndRenderActivities();
+      }
+    });
   </script>
 </body>
 </html>

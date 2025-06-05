@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Activities | VolunteerHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="dashboard-theme.css">
+  <script src="dashboard-theme.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+  <video autoplay muted loop id="backgroundVideo" class="prevent-select" style="position:fixed;width:100%;height:100%;object-fit:cover;z-index:-1;display:none;">
+    <source src="https://cdn.pixabay.com/video/2023/02/16/150883-799711528_large.mp4" type="video/mp4">
+  </video>
+  <!-- Header (copied from dashboard.html/community.html) -->
+  <header class="flex items-center justify-between bg-white shadow-md px-6 py-4 fixed top-0 left-0 w-full z-50">
+    <h1 class="text-xl font-bold text-gray-700">VolunteerHub</h1>
+    <div class="relative flex items-center gap-4">
+      <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
+      <div id="profileMenu" class="hidden absolute top-16 right-0 w-44 shadow-lg rounded-md z-50 border transition-colors">
+        <ul class="py-2 text-sm" id="profileMenuList">
+          <li><a href="#" class="block px-4 py-2">Profile</a></li>
+          <li><button class="w-full text-left block px-4 py-2 text-red-600">Log Out</button></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+  <div class="flex flex-1">
+    <!-- Sidebar (copied from dashboard.html/community.html) -->
+    <aside class="w-64 h-[100vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed pt-24">
+      <nav class="mt-6 flex-1">
+        <ul class="space-y-2">
+          <li><a href="dashboard.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Dashboard</a></li>
+          <li><a href="community.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Community</a></li>
+          <li><a href="find-activities.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Find Activities</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center justify-center gap-4 mb-4 px-6">
+        <button id="sidebarSettingsBtn" class="w-10 h-10" style="padding-bottom: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        </button>
+        <button id="sidebarPrintBtn" class="w-10 h-10" style="padding-bottom: 10px; background: var(--accent, #2563eb); color: #fff;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="themed-icon" aria-hidden="true" focusable="false">
+            <rect x="6" y="9" width="12" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+            <rect x="8" y="16" width="8" height="4" rx="1" fill="currentColor"/>
+            <rect x="6" y="3" width="12" height="4" rx="1" fill="currentColor"/>
+            <circle cx="17" cy="12.5" r="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 p-6 ml-64 mt-[64px]">
+      <div class="container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Find Activities</h2>
+        <div class="mb-4 text-gray-600">Map functionality coming soon.</div>
+      </div>
+    </main>
+  </div>
+  <script src="dashboard-theme.js"></script>
+  <script>
+    if (window.loadAndApplyDashboardTheme) {
+      window.loadAndApplyDashboardTheme();
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
+      });
+    }
+  </script>
+</body>
+</html>

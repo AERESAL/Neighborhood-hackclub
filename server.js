@@ -632,11 +632,26 @@ app.post('/api/community-posts', upload.single('image'), async (req, res) => {
       await file.makePublic();
       imageUrl = file.publicUrl();
     }
+    // Handle activity post fields
+    let isActivity = false;
+    let activityData = undefined;
+    if (typeof req.body.isActivity !== 'undefined') {
+      isActivity = req.body.isActivity === 'true' || req.body.isActivity === true;
+    }
+    if (typeof req.body.activityData !== 'undefined') {
+      try {
+        activityData = JSON.parse(req.body.activityData);
+      } catch (e) {
+        activityData = undefined;
+      }
+    }
     const post = {
       content,
       author,
       imageUrl,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...(typeof isActivity !== 'undefined' ? { isActivity } : {}),
+      ...(typeof activityData !== 'undefined' ? { activityData } : {})
     };
     // Save to Firestore
     const docRef = await db.collection('communityPosts').add(post);

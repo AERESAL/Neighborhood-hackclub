@@ -9,6 +9,26 @@
         .container { width: 75vw; height: 75vh; position: relative; margin: auto; border: 2px solid gray; background-color: rgba(200, 200, 200, 0.2); }
         header { background-color: rgba(255, 255, 255, 0.75); }
         aside { background-color: rgba(255, 255, 255, 0.75); }
+        /* Update the style for .community-post-container to remove max-width and set width to 100% */
+        .community-post-container {
+          width: 100%;
+          margin: 0 auto 18px auto;
+          padding: 0;
+          background: none;
+          max-width: none;
+        }
+        .activity-card-small {
+          padding: 1rem 1.2rem;
+          border-radius: 0.75rem;
+          box-shadow: 0 2px 8px #0001;
+          border-width: 2px;
+          border-color: #2563eb;
+          background: #fff;
+          font-size: 0.97rem;
+          gap: 0.5rem;
+          width: 100%;
+          min-width: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen">
@@ -33,10 +53,9 @@
         <aside class="w-64 h-[100vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed pt-24">
             <nav class="mt-6 flex-1">
                 <ul class="space-y-2">
-                    <li><a href="dashboard.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Activities</a></li>
-                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Leaderboard</a></li>
-                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">My Hours</a></li>
-                    <li><a href="community.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200 font-bold">Community</a></li>
+                    <li><a href="dashboard.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Dashboard</a></li>
+                    <li><a href="community.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Community</a></li>
+                    <li><a href="find-activities.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Find Activities</a></li>
                 </ul>
             </nav>
             <div class="flex items-center justify-center gap-4 mb-4 px-6">
@@ -123,25 +142,80 @@ const API_URL = window.location.hostname === "localhost" || window.location.host
   ? "http://localhost:3000"
   : "https://neighborhood-liard.vercel.app";
 
-// Fetch and render posts
+// Render community posts
 async function fetchAndRenderPosts() {
   const postsList = document.getElementById('postsList');
   postsList.innerHTML = '<div class="text-gray-400">Loading posts...</div>';
   try {
     const res = await fetch(`${API_URL}/api/community-posts`);
+    if (!res.ok) throw new Error('Failed to fetch posts');
     const data = await res.json();
+    console.log('Posts data:', data.posts);
     postsList.innerHTML = '';
     if (!data.posts || data.posts.length === 0) {
       postsList.innerHTML = '<div class="text-gray-400">No posts yet.</div>';
       return;
     }
     data.posts.forEach(post => {
+      // If post is an activity, render as: container -> activity card (name, then userMsg, then info)
+      if (post.isActivity && post.activityData) {
+        const container = document.createElement('div');
+        container.className = 'community-post-container';
+        // Prepare user message (if any)
+        let userMsg = '';
+        if (post.content) {
+          // Extract user message (before the 'Activity:' line)
+          const lines = post.content.split('\n');
+          if (lines.length > 1) {
+            userMsg = lines[0].trim();
+          } else if (!post.content.startsWith('Activity:')) {
+            userMsg = post.content.trim();
+          }
+        }
+        // Activity card
+        const card = document.createElement('div');
+        card.className = 'activity-card-small flex flex-col';
+        const a = post.activityData;
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <div class="font-bold text-lg text-blue-900 tracking-wide">${a.name || 'Untitled Activity'}</div>
+            <div class="text-xs text-gray-400">${new Date(post.createdAt).toLocaleString()}</div>
+          </div>
+          ${userMsg ? `<div class='text-gray-700 text-base mb-1'>${userMsg}</div>` : ''}
+          <div class="flex flex-wrap gap-4 text-gray-700 text-sm mb-1">
+            <div><span class="font-semibold">Place:</span> ${a.location || '-'}</div>
+            <div><span class="font-semibold">Date:</span> ${a.date || '-'}</div>
+            <div><span class="font-semibold">Time:</span> ${a.start_time || '-'} - ${a.end_time || '-'}</div>
+          </div>
+          <div class="flex flex-wrap gap-4 text-gray-700 text-sm mb-1">
+            <div><span class="font-semibold">Supervisor:</span> ${a.supervisorName || '-'}</div>
+            <div><span class="font-semibold">Email:</span> <a href="mailto:${a.supervisorEmail}" class="text-blue-600 underline">${a.supervisorEmail || '-'}</a></div>
+          </div>
+          <div class="flex justify-end mt-2">
+            <button class="join-activity-btn px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold shadow transition" data-id="${post.id}">Join Activity</button>
+          </div>
+        `;
+        container.appendChild(card);
+        // Author and delete button below
+        const authorDiv = document.createElement('div');
+        authorDiv.className = 'text-xs text-gray-500 mt-1';
+        authorDiv.innerHTML = `Posted by <span class="font-semibold">${post.author || 'Anonymous'}</span>`;
+        container.appendChild(authorDiv);
+        if (post.author && post.author === currentUser) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs';
+          delBtn.setAttribute('data-id', post.id);
+          delBtn.textContent = 'Delete';
+          container.appendChild(delBtn);
+        }
+        postsList.appendChild(container);
+        return;
+      }
+      // Non-activity post: original style, but in container
+      const container = document.createElement('div');
+      container.className = 'community-post-container';
       const div = document.createElement('div');
       div.className = 'bg-gray-100 rounded p-4 shadow';
-      let canDelete = false;
-      const currentUser = localStorage.getItem('username') || '';
-      if (post.author && post.author === currentUser) canDelete = true;
-      // Fix image URL to be absolute if needed
       let imageUrl = post.imageUrl;
       if (imageUrl && imageUrl.startsWith('/uploads/')) {
         imageUrl = `${API_URL}${imageUrl}`;
@@ -151,9 +225,60 @@ async function fetchAndRenderPosts() {
         <div class="text-gray-600 mt-1">${post.content}</div>
         ${imageUrl ? `<img src="${imageUrl}" alt="Post image" class="mt-2 max-h-60 rounded shadow" style="max-width:100%">` : ''}
         <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
-        ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
+        ${post.author && post.author === currentUser ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
       `;
-      postsList.appendChild(div);
+      container.appendChild(div);
+      postsList.appendChild(container);
+    });
+    // Attach add-to-activities handlers
+    document.querySelectorAll('.add-to-activities-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const postId = this.getAttribute('data-id');
+        const post = data.posts.find(p => p.id === postId);
+        if (!post || !post.activityData) return alert('No activity data found for this post.');
+        // Add activity to user's activities
+        const token = localStorage.getItem('token');
+        if (!token) return alert('You must be logged in.');
+        try {
+          const res = await fetch(`${API_URL}/activities`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(post.activityData)
+          });
+          if (!res.ok) throw new Error('Failed to add activity');
+          alert('Activity added to your activities!');
+        } catch (err) {
+          alert('Failed to add activity.');
+        }
+      });
+    });
+    // Attach join-activity handlers
+    document.querySelectorAll('.join-activity-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const postId = this.getAttribute('data-id');
+        const post = data.posts.find(p => p.id === postId);
+        if (!post || !post.activityData) return alert('No activity data found for this post.');
+        // Send POST to /activities endpoint
+        const token = localStorage.getItem('token');
+        if (!token) return alert('You must be logged in to join an activity.');
+        try {
+          const res = await fetch(`${API_URL}/activities`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(post.activityData)
+          });
+          if (!res.ok) throw new Error('Failed to join activity');
+          alert('Activity added to your activities!');
+        } catch (err) {
+          alert('Failed to join activity.');
+        }
+      });
     });
     // Attach delete handlers
     document.querySelectorAll('.delete-post-btn').forEach(btn => {
@@ -414,6 +539,85 @@ function setActiveTab(tab) {
 communityTab.addEventListener('click', () => setActiveTab('community'));
 friendsTab.addEventListener('click', () => setActiveTab('friends'));
 setActiveTab('community');
+
+// Add Activity Post Button and Modal
+(function addActivityPostFeature() {
+  const addActivityPostBtn = document.createElement('button');
+  addActivityPostBtn.textContent = 'Create Activity Post';
+  addActivityPostBtn.className = 'px-4 py-2 bg-green-600 text-white rounded mb-2';
+  const postsSection = document.getElementById('postsSection');
+  if (postsSection) postsSection.insertBefore(addActivityPostBtn, postsSection.firstChild);
+  addActivityPostBtn.addEventListener('click', function() {
+    // Show a prompt/modal to enter activity details
+    const formHtml = `
+      <div id="activityPostModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div class="bg-white rounded-lg shadow-lg p-6 relative w-full max-w-lg">
+          <button id="closeActivityPostModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+          <form id="activityPostForm" class="space-y-4 mb-4">
+            <textarea id="activityPostUserText" class="border rounded px-3 py-2 w-full" rows="2" placeholder="Add a message to your activity post (optional)"></textarea>
+            <div class="flex flex-wrap gap-4">
+              <input type="text" id="activityPostTitle" placeholder="Title" class="border rounded px-3 py-2 flex-1" required>
+              <input type="text" id="activityPostPlace" placeholder="Place" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <input type="date" id="activityPostDate" class="border rounded px-3 py-2 flex-1" required>
+              <input type="time" id="activityPostStartTime" class="border rounded px-3 py-2 flex-1" required>
+              <input type="time" id="activityPostEndTime" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <input type="text" id="activityPostSupervisorName" placeholder="Supervisor Name" class="border rounded px-3 py-2 flex-1" required>
+              <input type="email" id="activityPostSupervisorEmail" placeholder="Supervisor Email" class="border rounded px-3 py-2 flex-1" required>
+            </div>
+            <div class="flex gap-4">
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Post Activity</button>
+              <button type="button" id="cancelActivityPost" class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', formHtml);
+    const modal = document.getElementById('activityPostModal');
+    const closeModal = document.getElementById('closeActivityPostModal');
+    const cancelBtn = document.getElementById('cancelActivityPost');
+    closeModal.onclick = cancelBtn.onclick = function() {
+      modal.remove();
+    };
+    document.getElementById('activityPostForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const author = localStorage.getItem('username') || 'Anonymous';
+      const userText = document.getElementById('activityPostUserText').value.trim();
+      const activityData = {
+        name: document.getElementById('activityPostTitle').value.trim(),
+        date: document.getElementById('activityPostDate').value,
+        start_time: document.getElementById('activityPostStartTime').value,
+        end_time: document.getElementById('activityPostEndTime').value,
+        location: document.getElementById('activityPostPlace').value.trim(),
+        supervisorName: document.getElementById('activityPostSupervisorName').value.trim(),
+        supervisorEmail: document.getElementById('activityPostSupervisorEmail').value.trim(),
+        approved: false
+      };
+      // Post to community as an activity
+      const formData = new FormData();
+      let content = userText ? userText + '\n' : '';
+      content += `Activity: ${activityData.name} @ ${activityData.location} on ${activityData.date}`;
+      formData.append('content', content);
+      formData.append('author', author);
+      formData.append('isActivity', 'true');
+      formData.append('activityData', JSON.stringify(activityData));
+      try {
+        const res = await fetch(`${API_URL}/api/community-posts`, {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Failed to post activity');
+        modal.remove();
+        fetchAndRenderPosts();
+      } catch (err) {
+        alert('Failed to post activity.');
+      }
+    };
+  });
+})();
   </script>
 </body>
 </html>

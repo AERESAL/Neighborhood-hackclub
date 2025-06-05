@@ -193,7 +193,7 @@ function applyTheme(theme) {
     img.alt = theme.name + ' background';
     container.appendChild(img);
   }
-  // Apply text and accent colors
+  // Apply theme colors to all relevant UI elements
   const content = document.getElementById('settingsContent');
   const title = document.getElementById('settingsTitle');
   const heading = document.getElementById('themeHeading');
@@ -209,6 +209,94 @@ function applyTheme(theme) {
   document.querySelectorAll('#themeSelector button').forEach(btn => {
     btn.style.borderColor = theme.accents;
     btn.style.color = theme.textColor;
+    btn.style.background = theme.color2;
+  });
+  // Style all inputs, selects, textareas
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.style.background = theme.color3;
+    el.style.color = theme.textColor;
+    el.style.borderColor = theme.accents;
+  });
+  // Style all labels
+  document.querySelectorAll('label').forEach(label => {
+    label.style.color = theme.accents;
+  });
+  // Style all headings (h1, h2, h3, h4, h5, h6)
+  document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => {
+    h.style.color = theme.accents;
+  });
+  // Style all buttons except delete buttons
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.classList.contains('delete-btn')) {
+      btn.style.background = '#e74c3c'; // keep red for delete
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#e74c3c';
+    } else {
+      btn.style.background = theme.color;
+      btn.style.color = theme.textColor;
+      btn.style.borderColor = theme.accents;
+    }
+  });
+  // Style all modals and popups
+  document.querySelectorAll('.modal, .popup, #themesPopup, #createThemeModal').forEach(modal => {
+    modal.style.background = theme.color2;
+    modal.style.color = theme.textColor;
+    modal.style.borderColor = theme.accents;
+  });
+  // Style all status/info text
+  document.querySelectorAll('.text-sm, .text-gray-600, .text-gray-400').forEach(el => {
+    el.style.color = theme.textColor;
+  });
+  // Style all borders
+  document.querySelectorAll('.border, .rounded-lg, .rounded').forEach(el => {
+    el.style.borderColor = theme.accents;
+  });
+  // Style all preview color dots in theme lists
+  document.querySelectorAll('#themesList span, #themeSelector span').forEach(dot => {
+    dot.style.borderColor = theme.accents;
+  });
+  // Style all links
+  document.querySelectorAll('a').forEach(a => {
+    a.style.color = theme.accents;
+  });
+  // Style all preview backgrounds
+  document.querySelectorAll('.preview-bg').forEach(bg => {
+    bg.style.background = theme.color2;
+  });
+  // Style all grid/list backgrounds
+  document.querySelectorAll('.grid, .list, .flex').forEach(el => {
+    el.style.background = theme.color2;
+  });
+  // Style all form backgrounds
+  document.querySelectorAll('form').forEach(form => {
+    form.style.background = theme.color2;
+    form.style.color = theme.textColor;
+    form.style.borderColor = theme.accents;
+  });
+  // Style all cards
+  document.querySelectorAll('.card, .shadow-lg').forEach(card => {
+    card.style.background = theme.color2;
+    card.style.color = theme.textColor;
+    card.style.borderColor = theme.accents;
+  });
+  // Style all hr
+  document.querySelectorAll('hr').forEach(hr => {
+    hr.style.borderColor = theme.accents;
+  });
+  // Style all svg icons
+  document.querySelectorAll('svg').forEach(svg => {
+    svg.style.color = theme.accents;
+  });
+  // Remove any hardcoded color classes from Tailwind (except for delete/red)
+  document.querySelectorAll('[class*="text-"], [class*="bg-"], [class*="border-"]').forEach(el => {
+    if (!el.className.includes('red') && !el.className.includes('delete')) {
+      el.className = el.className
+        .replace(/text-[^\s]+/g, '')
+        .replace(/bg-[^\s]+/g, '')
+        .replace(/border-[^\s]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
   });
 }
 // --- Profile Section Logic ---
@@ -369,36 +457,7 @@ loadProfile();
   </script>
   <script>
 // --- View More Themes Popup Logic ---
-// Firebase config (replace with your own config if needed)
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-let firebaseApp, firestore;
-
-function ensureFirebase() {
-  if (!window.firebase) {
-    const script = document.createElement('script');
-    script.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
-    script.onload = () => {
-      const script2 = document.createElement('script');
-      script2.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js';
-      script2.onload = () => {
-        firebaseApp = firebase.initializeApp(firebaseConfig);
-        firestore = firebase.firestore();
-      };
-      document.body.appendChild(script2);
-    };
-    document.body.appendChild(script);
-  } else {
-    firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-    firestore = firebase.firestore();
-  }
-}
+// Use existing API_URL from above
 
 const viewMoreThemesBtn = document.getElementById('viewMoreThemesBtn');
 const themesPopup = document.getElementById('themesPopup');
@@ -412,12 +471,11 @@ const closeCreateThemeModal = document.getElementById('closeCreateThemeModal');
 const createThemeForm = document.getElementById('createThemeForm');
 const createThemeStatus = document.getElementById('createThemeStatus');
 
-let allFirebaseThemes = [];
+let allBackendThemes = [];
 
 function showThemesPopup() {
-  ensureFirebase();
   themesPopup.classList.remove('hidden');
-  loadFirebaseThemes();
+  loadBackendThemes();
 }
 function hideThemesPopup() {
   themesPopup.classList.add('hidden');
@@ -444,77 +502,114 @@ function renderThemesList(themes) {
     return;
   }
   themes.forEach(theme => {
+    // Normalize theme for preview and selection
+    const normalizedTheme = {
+      name: theme.name,
+      color: theme.color || (theme.colors && theme.colors.color) || '#2563eb',
+      color2: theme.color2 || (theme.colors && theme.colors.color2) || '#22d3ee',
+      color3: theme.color3 || (theme.colors && theme.colors.color3) || '#e0e0e0',
+      accents: theme.accents || (theme.colors && theme.colors.accents) || '#2563eb',
+      textColor: theme.textColor || (theme.colors && theme.colors.textColor) || '#000',
+      background: theme.background || (theme.colors && theme.colors.background) || '',
+      id: theme.id
+    };
     const div = document.createElement('div');
     div.className = 'border rounded-lg p-3 flex flex-col items-center cursor-pointer hover:shadow-lg';
     div.innerHTML = `
-      <div class="w-16 h-8 rounded mb-2" style="background:${theme.color}"></div>
-      <div class="text-sm font-bold mb-1">${theme.name}</div>
+      <div class="w-16 h-8 rounded mb-2" style="background:${normalizedTheme.color}"></div>
+      <div class="text-sm font-bold mb-1">${normalizedTheme.name}</div>
       <div class="flex gap-1">
-        <span class="w-4 h-4 rounded-full" style="background:${theme.color2}"></span>
-        <span class="w-4 h-4 rounded-full" style="background:${theme.color3}"></span>
-        <span class="w-4 h-4 rounded-full" style="background:${theme.accents}"></span>
-        <span class="w-4 h-4 rounded-full border" style="background:${theme.textColor}"></span>
+        <span class="w-4 h-4 rounded-full" style="background:${normalizedTheme.color2}"></span>
+        <span class="w-4 h-4 rounded-full" style="background:${normalizedTheme.color3}"></span>
+        <span class="w-4 h-4 rounded-full" style="background:${normalizedTheme.accents}"></span>
+        <span class="w-4 h-4 rounded-full border" style="background:${normalizedTheme.textColor}"></span>
       </div>
     `;
     div.onclick = () => {
-      localStorage.setItem('themeIdx', 'firebase:' + theme.id);
-      localStorage.setItem('firebaseTheme', JSON.stringify(theme));
-      applyTheme(theme);
+      localStorage.setItem('themeIdx', 'backend:' + normalizedTheme.id);
+      localStorage.setItem('backendTheme', JSON.stringify(normalizedTheme));
+      applyTheme(normalizedTheme);
       hideThemesPopup();
     };
     themesList.appendChild(div);
   });
 }
-function loadFirebaseThemes(search = '') {
+async function loadBackendThemes(search = '') {
   themesStatus.textContent = 'Loading...';
-  if (!firestore) { setTimeout(() => loadFirebaseThemes(search), 500); return; }
-  let query = firestore.collection('themes');
-  if (search) query = query.where('name', '>=', search).where('name', '<=', search + '\uf8ff');
-  query.get().then(snapshot => {
-    allFirebaseThemes = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      data.id = doc.id;
-      allFirebaseThemes.push(data);
-    });
-    renderThemesList(allFirebaseThemes);
+  try {
+    let url = `${API_URL}/themes`;
+    // If you implement search on backend, add query param here
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to load themes');
+    const data = await res.json();
+    // If backend returns { themes: [...] }
+    const themes = data.themes || data || [];
+    allBackendThemes = themes.map(t => ({ ...t, id: t.id || t._id }));
+    // If backend returns array, just use data
+    renderThemesList(allBackendThemes);
     themesStatus.textContent = '';
-  }).catch(err => {
+  } catch (err) {
     themesStatus.textContent = 'Failed to load themes.';
-  });
+  }
 }
 searchThemeInput.addEventListener('input', e => {
-  loadFirebaseThemes(e.target.value.trim());
+  loadBackendThemes(e.target.value.trim());
 });
 createThemeForm.addEventListener('submit', async function(e) {
   e.preventDefault();
-  if (!firestore) { createThemeStatus.textContent = 'Loading...'; return; }
   const form = e.target;
+  // Save all color fields inside a 'colors' object for backend compatibility
   const theme = {
     name: form.name.value.trim(),
-    color: form.color.value,
-    color2: form.color2.value,
-    color3: form.color3.value,
-    accents: form.accents.value,
-    textColor: form.textColor.value,
-    background: form.background.value.trim()
+    colors: {
+      color: form.color.value,
+      color2: form.color2.value,
+      color3: form.color3.value,
+      accents: form.accents.value,
+      textColor: form.textColor.value,
+      background: form.background.value.trim()
+    }
   };
+  // For backward compatibility, also send top-level fields
+  theme.color = form.color.value;
+  theme.color2 = form.color2.value;
+  theme.color3 = form.color3.value;
+  theme.accents = form.accents.value;
+  theme.textColor = form.textColor.value;
+  theme.background = form.background.value.trim();
   createThemeStatus.textContent = 'Submitting...';
   try {
-    await firestore.collection('themes').add(theme);
+    const res = await fetch(`${API_URL}/themes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(theme)
+    });
+    if (!res.ok) throw new Error('Failed to submit theme');
     createThemeStatus.textContent = 'Theme submitted!';
-    setTimeout(() => { hideCreateThemeModal(); loadFirebaseThemes(); }, 1000);
+    setTimeout(() => { hideCreateThemeModal(); loadBackendThemes(); }, 1000);
   } catch (err) {
     createThemeStatus.textContent = 'Failed to submit theme.';
   }
 });
-// If user has selected a firebase theme, apply it on load
+// If user has selected a backend theme, apply it on load
 (function() {
   const idx = localStorage.getItem('themeIdx');
-  if (idx && idx.startsWith('firebase:')) {
+  if (idx && idx.startsWith('backend:')) {
     try {
-      const theme = JSON.parse(localStorage.getItem('firebaseTheme'));
-      if (theme) applyTheme(theme);
+      const theme = JSON.parse(localStorage.getItem('backendTheme'));
+      if (theme) {
+        // Ensure theme object matches the structure expected by applyTheme
+        const normalizedTheme = {
+          name: theme.name,
+          color: theme.color || (theme.colors && theme.colors.color) || '#2563eb',
+          color2: theme.color2 || (theme.colors && theme.colors.color2) || '#22d3ee',
+          color3: theme.color3 || (theme.colors && theme.colors.color3) || '#e0e0e0',
+          accents: theme.accents || (theme.colors && theme.colors.accents) || '#2563eb',
+          textColor: theme.textColor || (theme.colors && theme.colors.textColor) || '#000',
+          background: theme.background || (theme.colors && theme.colors.background) || '',
+        };
+        applyTheme(normalizedTheme);
+      }
     } catch {}
   }
 })();

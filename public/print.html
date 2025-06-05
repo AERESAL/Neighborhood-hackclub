@@ -127,25 +127,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="dashboard-theme.js"></script>
     <script>
-      // Ensure the VolunteerHub theme is applied (from themes.json via dashboard-theme.js)
-      function applyPrintWidgetTheme(theme) {
-        // Apply theme to the print widget/preview
-        var preview = document.getElementById('printPreview');
-        if (preview && theme) {
-          preview.style.background = theme.color3 || '#e0e0e0';
-          preview.style.color = theme.textColor || '#000';
-          preview.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, a, button, li, div').forEach(function(el) {
-            el.style.color = theme.textColor || '#000';
-          });
-        }
-      }
-      // Patch the dashboard theme loader to also update the print widget
-      const origApplyDashboardTheme = window.applyDashboardTheme;
-      window.applyDashboardTheme = function(theme) {
-        origApplyDashboardTheme(theme);
-        applyPrintWidgetTheme(theme);
-      };
-      // Ensure the theme is applied
+      // Ensure the VolunteerHub theme is applied (from themes.json or backend)
       if (window.loadAndApplyDashboardTheme) {
         window.loadAndApplyDashboardTheme();
       } else {

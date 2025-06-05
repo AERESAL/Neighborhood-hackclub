@@ -296,6 +296,13 @@ fetchFriends();
 // Initial load
 window.addEventListener('DOMContentLoaded', fetchAndRenderPosts);
 
+// Patch fetchAndRenderPosts to re-apply post theme after rendering
+var origFetchAndRenderPosts = fetchAndRenderPosts;
+fetchAndRenderPosts = async function() {
+  await origFetchAndRenderPosts();
+  if (window._updatePostTheme) window._updatePostTheme();
+};
+
 // --- THEME LOGIC ---
 function applyCommunityTheme(theme) {
   // Header
@@ -352,6 +359,10 @@ function applyCommunityTheme(theme) {
 }
 
 function loadAndApplyCommunityTheme() {
+  if (window.loadAndApplyDashboardTheme) {
+    window.loadAndApplyDashboardTheme();
+    return;
+  }
   fetch('themes.json')
     .then(function(res) { return res.json(); })
     .then(function(data) {
@@ -364,14 +375,7 @@ function loadAndApplyCommunityTheme() {
 }
 window.addEventListener('DOMContentLoaded', loadAndApplyCommunityTheme);
 
-// Patch fetchAndRenderPosts to re-apply post theme after rendering
-var origFetchAndRenderPosts = fetchAndRenderPosts;
-fetchAndRenderPosts = async function() {
-  await origFetchAndRenderPosts();
-  if (window._updatePostTheme) window._updatePostTheme();
-};
-
-    // Mobile redirect logic
+// Mobile redirect logic
     (function() {
       var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       var path = window.location.pathname;

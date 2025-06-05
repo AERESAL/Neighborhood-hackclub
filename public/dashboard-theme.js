@@ -121,18 +121,48 @@ function applyDashboardTheme(theme) {
     }
 }
 
+function getSelectedThemeFromStorage() {
+  let idx = localStorage.getItem('themeIdx');
+  if (!idx) return null;
+  if (idx.startsWith('backend:')) {
+    // Backend theme: normalize structure
+    try {
+      const theme = JSON.parse(localStorage.getItem('backendTheme'));
+      if (theme) {
+        return {
+          name: theme.name,
+          color: theme.color || (theme.colors && theme.colors.color) || '#2563eb',
+          color2: theme.color2 || (theme.colors && theme.colors.color2) || '#22d3ee',
+          color3: theme.color3 || (theme.colors && theme.colors.color3) || '#e0e0e0',
+          accents: theme.accents || (theme.colors && theme.colors.accents) || '#2563eb',
+          textColor: theme.textColor || (theme.colors && theme.colors.textColor) || '#000',
+          background: theme.background || (theme.colors && theme.colors.background) || '',
+        };
+      }
+    } catch {}
+    return null;
+  } else {
+    // themes.json theme: load from file
+    try {
+      const themes = window._themesFromJson;
+      if (themes && themes[idx]) return themes[idx];
+    } catch {}
+    return null;
+  }
+}
+
 function loadAndApplyDashboardTheme() {
-    fetch('themes.json')
-        .then(res => res.json())
-        .then(data => {
-            const themes = data.themes;
-            let idx = localStorage.getItem('themeIdx');
-            if (!idx || !themes[idx]) idx = 0;
-            applyDashboardTheme(themes[idx]);
-        })
-        .catch(() => {
-            // fallback: do nothing or apply default
-        });
+  fetch('themes.json')
+    .then(res => res.json())
+    .then(data => {
+      window._themesFromJson = data.themes;
+      let theme = getSelectedThemeFromStorage();
+      if (!theme) theme = data.themes[0];
+      applyDashboardTheme(theme);
+    })
+    .catch(() => {
+      // fallback: do nothing or apply default
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

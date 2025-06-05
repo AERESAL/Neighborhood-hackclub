@@ -491,6 +491,14 @@
         window.fetchAndRenderActivities();
       }
     });
+    // Ensure the VolunteerHub theme is applied
+    if (window.loadAndApplyDashboardTheme) {
+      window.loadAndApplyDashboardTheme();
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
+      });
+    }
   </script>
 </body>
 </html>

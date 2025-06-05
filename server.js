@@ -728,6 +728,42 @@ app.post('/api/friends/add', express.json(), async (req, res) => {
 });
 // --- End Friends API ---
 
+// POST /themes - Create a new theme
+db; // ensure db is initialized
+app.post('/themes', async (req, res) => {
+  try {
+    const { name, colors, description, createdBy } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: 'Theme name is required.' });
+    }
+    // You can add more validation for colors, etc. as needed
+    const newTheme = {
+      name,
+      colors: colors || {},
+      description: description || '',
+      createdBy: createdBy || null,
+      createdAt: new Date().toISOString(),
+    };
+    const docRef = await db.collection('themes').add(newTheme);
+    res.status(201).json({ message: 'Theme created successfully.', id: docRef.id });
+  } catch (error) {
+    console.error('Error creating theme:', error);
+    res.status(500).json({ message: 'Failed to create theme.' });
+  }
+});
+
+// GET /themes - List all themes
+app.get('/themes', async (req, res) => {
+  try {
+    const snapshot = await db.collection('themes').get();
+    const themes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ themes });
+  } catch (error) {
+    console.error('Error fetching themes:', error);
+    res.status(500).json({ message: 'Failed to fetch themes.' });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
 

@@ -78,6 +78,51 @@
         <div id="otherPrefs" class="text-gray-600 flex justify-center mt-4">
             <button id="viewMoreThemesBtn" class="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transition">View More Themes</button>
         </div>
+        <!-- View More Themes Popup -->
+        <div id="themesPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+          <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+            <button id="closeThemesPopup" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <div class="flex items-center gap-2 mb-4">
+              <input id="searchThemeInput" type="text" placeholder="Search theme name..." class="border rounded px-3 py-2 flex-1" />
+              <button id="createThemeBtn" class="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600">Create New Theme</button>
+            </div>
+            <div id="themesList" class="grid grid-cols-2 gap-4 max-h-80 overflow-y-auto"></div>
+            <div id="themesStatus" class="text-sm mt-2"></div>
+          </div>
+        </div>
+        <!-- Create Theme Modal -->
+        <div id="createThemeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+          <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button id="closeCreateThemeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h2 class="text-lg font-bold mb-4">Create New Theme</h2>
+            <form id="createThemeForm" class="space-y-3">
+              <input type="text" name="name" placeholder="Theme Name" class="border rounded px-3 py-2 w-full" required />
+              <div class="flex items-center space-x-2">
+                <input type="color" name="color" class="w-10 h-10 border rounded" title="Primary Color" required />
+                <label for="color">Color</label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <input type="color" name="color2" class="w-10 h-10 border rounded" title="Secondary Color" required />
+                <label for="color2">Color 2</label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <input type="color" name="color3" class="w-10 h-10 border rounded" title="Widget Color" required />
+                <label for="color3">Color 3</label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <input type="color" name="accents" class="w-10 h-10 border rounded" title="Accent Color" required />
+                <label for="accents">Accents</label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <input type="color" name="textColor" class="w-10 h-10 border rounded" title="Text Color" required />
+                <label for="textColor">Text Color</label>
+              </div>
+              <input type="text" name="background" placeholder="Background URL (image or .mp4)" class="border rounded px-3 py-2 w-full" required />
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Submit Theme</button>
+              <div id="createThemeStatus" class="text-sm mt-2"></div>
+            </form>
+          </div>
+        </div>
     </div>
     <script>
 // Load themes from themes.json and render theme buttons
@@ -321,6 +366,158 @@ loadProfile();
         window.location.replace('settings.mobile.html');
       }
     })();
+  </script>
+  <script>
+// --- View More Themes Popup Logic ---
+// Firebase config (replace with your own config if needed)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let firebaseApp, firestore;
+
+function ensureFirebase() {
+  if (!window.firebase) {
+    const script = document.createElement('script');
+    script.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
+    script.onload = () => {
+      const script2 = document.createElement('script');
+      script2.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js';
+      script2.onload = () => {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        firestore = firebase.firestore();
+      };
+      document.body.appendChild(script2);
+    };
+    document.body.appendChild(script);
+  } else {
+    firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    firestore = firebase.firestore();
+  }
+}
+
+const viewMoreThemesBtn = document.getElementById('viewMoreThemesBtn');
+const themesPopup = document.getElementById('themesPopup');
+const closeThemesPopup = document.getElementById('closeThemesPopup');
+const searchThemeInput = document.getElementById('searchThemeInput');
+const themesList = document.getElementById('themesList');
+const themesStatus = document.getElementById('themesStatus');
+const createThemeBtn = document.getElementById('createThemeBtn');
+const createThemeModal = document.getElementById('createThemeModal');
+const closeCreateThemeModal = document.getElementById('closeCreateThemeModal');
+const createThemeForm = document.getElementById('createThemeForm');
+const createThemeStatus = document.getElementById('createThemeStatus');
+
+let allFirebaseThemes = [];
+
+function showThemesPopup() {
+  ensureFirebase();
+  themesPopup.classList.remove('hidden');
+  loadFirebaseThemes();
+}
+function hideThemesPopup() {
+  themesPopup.classList.add('hidden');
+}
+function showCreateThemeModal() {
+  createThemeModal.classList.remove('hidden');
+  createThemeStatus.textContent = '';
+  createThemeForm.reset();
+}
+function hideCreateThemeModal() {
+  createThemeModal.classList.add('hidden');
+}
+viewMoreThemesBtn.onclick = showThemesPopup;
+closeThemesPopup.onclick = hideThemesPopup;
+createThemeBtn.onclick = showCreateThemeModal;
+closeCreateThemeModal.onclick = hideCreateThemeModal;
+themesPopup.addEventListener('click', e => { if (e.target === themesPopup) hideThemesPopup(); });
+createThemeModal.addEventListener('click', e => { if (e.target === createThemeModal) hideCreateThemeModal(); });
+
+function renderThemesList(themes) {
+  themesList.innerHTML = '';
+  if (!themes.length) {
+    themesList.innerHTML = '<div class="col-span-2 text-gray-400">No themes found.</div>';
+    return;
+  }
+  themes.forEach(theme => {
+    const div = document.createElement('div');
+    div.className = 'border rounded-lg p-3 flex flex-col items-center cursor-pointer hover:shadow-lg';
+    div.innerHTML = `
+      <div class="w-16 h-8 rounded mb-2" style="background:${theme.color}"></div>
+      <div class="text-sm font-bold mb-1">${theme.name}</div>
+      <div class="flex gap-1">
+        <span class="w-4 h-4 rounded-full" style="background:${theme.color2}"></span>
+        <span class="w-4 h-4 rounded-full" style="background:${theme.color3}"></span>
+        <span class="w-4 h-4 rounded-full" style="background:${theme.accents}"></span>
+        <span class="w-4 h-4 rounded-full border" style="background:${theme.textColor}"></span>
+      </div>
+    `;
+    div.onclick = () => {
+      localStorage.setItem('themeIdx', 'firebase:' + theme.id);
+      localStorage.setItem('firebaseTheme', JSON.stringify(theme));
+      applyTheme(theme);
+      hideThemesPopup();
+    };
+    themesList.appendChild(div);
+  });
+}
+function loadFirebaseThemes(search = '') {
+  themesStatus.textContent = 'Loading...';
+  if (!firestore) { setTimeout(() => loadFirebaseThemes(search), 500); return; }
+  let query = firestore.collection('themes');
+  if (search) query = query.where('name', '>=', search).where('name', '<=', search + '\uf8ff');
+  query.get().then(snapshot => {
+    allFirebaseThemes = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      data.id = doc.id;
+      allFirebaseThemes.push(data);
+    });
+    renderThemesList(allFirebaseThemes);
+    themesStatus.textContent = '';
+  }).catch(err => {
+    themesStatus.textContent = 'Failed to load themes.';
+  });
+}
+searchThemeInput.addEventListener('input', e => {
+  loadFirebaseThemes(e.target.value.trim());
+});
+createThemeForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!firestore) { createThemeStatus.textContent = 'Loading...'; return; }
+  const form = e.target;
+  const theme = {
+    name: form.name.value.trim(),
+    color: form.color.value,
+    color2: form.color2.value,
+    color3: form.color3.value,
+    accents: form.accents.value,
+    textColor: form.textColor.value,
+    background: form.background.value.trim()
+  };
+  createThemeStatus.textContent = 'Submitting...';
+  try {
+    await firestore.collection('themes').add(theme);
+    createThemeStatus.textContent = 'Theme submitted!';
+    setTimeout(() => { hideCreateThemeModal(); loadFirebaseThemes(); }, 1000);
+  } catch (err) {
+    createThemeStatus.textContent = 'Failed to submit theme.';
+  }
+});
+// If user has selected a firebase theme, apply it on load
+(function() {
+  const idx = localStorage.getItem('themeIdx');
+  if (idx && idx.startsWith('firebase:')) {
+    try {
+      const theme = JSON.parse(localStorage.getItem('firebaseTheme'));
+      if (theme) applyTheme(theme);
+    } catch {}
+  }
+})();
   </script>
 </body>
 </html>

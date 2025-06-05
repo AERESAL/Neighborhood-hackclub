@@ -192,7 +192,7 @@
         <div class="mt-2 text-lg font-bold text-green-600 hidden" id="approvedHoursDisplay"></div>
         <div class="mt-2 text-lg font-bold text-red-500 hidden" id="unapprovedHoursDisplay"></div>
       </div>
-      <button id="addActivityBtn" class="accent-btn my-2 w-full max-w-xs mx-auto flex justify-center items-center">Add Activity</button>
+      <button id="addActivityBtn" class="accent-btn my-2 w-full max-w-xs mx-auto flex justify-center items-center" type="button">Add Activity</button>
       <!-- Add Activity Modal (matches dashboard.html, reduced width) -->
       <div id="addActivityModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
         <div class="bg-white rounded-lg shadow-lg p-6 relative w-full max-w-sm">
@@ -398,17 +398,27 @@
     const mobileSidebar = document.getElementById('mobileSidebar');
     const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
     const closeMobileSidebar = document.getElementById('closeMobileSidebar');
+
     function openMobileSidebar() {
-      document.getElementById('mobileSidebar').classList.add('active');
-      document.getElementById('mobileSidebarOverlay').classList.remove('hidden');
+      if (mobileSidebar) mobileSidebar.classList.add('active');
+      if (mobileSidebarOverlay) mobileSidebarOverlay.classList.remove('hidden');
     }
+
     function closeSidebar() {
-      document.getElementById('mobileSidebar').classList.remove('active');
-      document.getElementById('mobileSidebarOverlay').classList.add('hidden');
+      if (mobileSidebar) mobileSidebar.classList.remove('active');
+      if (mobileSidebarOverlay) mobileSidebarOverlay.classList.add('hidden');
     }
-    mobileMenuBtn.addEventListener('click', openMobileSidebar);
-    closeMobileSidebar.addEventListener('click', closeSidebar);
-    mobileSidebarOverlay.addEventListener('click', closeSidebar);
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', openMobileSidebar);
+    }
+    if (closeMobileSidebar) {
+      closeMobileSidebar.addEventListener('click', closeSidebar);
+    }
+    if (mobileSidebarOverlay) {
+      mobileSidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('service-worker.js');

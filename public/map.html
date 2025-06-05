@@ -56,11 +56,14 @@
     <main class="flex-1 p-6 ml-64 mt-[64px]">
       <div class="container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Find Activities</h2>
-        <div class="mb-4 text-gray-600">Activity finding functionality coming soon.</div>
+        <div class="mb-4 text-gray-600">Explore activities on the map below.</div>
+        <div id="map" style="width:100%;height:500px;border-radius:12px;box-shadow:0 2px 8px #0002;"></div>
       </div>
     </main>
   </div>
   <script src="dashboard-theme.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     if (window.loadAndApplyDashboardTheme) {
       window.loadAndApplyDashboardTheme();
@@ -69,6 +72,61 @@
         if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
       });
     }
+
+    const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:3000"
+      : "https://neighborhood-liard.vercel.app";
+
+    let map;
+    let markers = [];
+
+    async function fetchAndPlotActivities() {
+      try {
+        const res = await fetch(`${API_URL}/api/community-posts`);
+        const data = await res.json();
+        const activities = (data.posts || []).filter(p => p.isActivity && p.activityData && p.activityData.location);
+        for (const post of activities) {
+          const a = post.activityData;
+          geocodeAndPlaceMarker(a.location, a, post);
+        }
+      } catch (err) {
+        console.error('Failed to fetch activities', err);
+      }
+    }
+
+    // Use Nominatim for geocoding (OpenStreetMap)
+    function geocodeAndPlaceMarker(address, activity, post) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(res => res.json())
+        .then(results => {
+          if (results && results[0]) {
+            const lat = parseFloat(results[0].lat);
+            const lon = parseFloat(results[0].lon);
+            const marker = L.marker([lat, lon]).addTo(map);
+            const content = `
+              <div style='min-width:200px'>
+                <div class='font-bold text-lg mb-1'>${activity.name || 'Untitled Activity'}</div>
+                <div class='text-gray-700 mb-1'><b>Place:</b> ${activity.location}</div>
+                <div class='text-gray-700 mb-1'><b>Date:</b> ${activity.date || '-'}<br><b>Time:</b> ${activity.start_time || '-'} - ${activity.end_time || '-'}</div>
+                <div class='text-gray-700 mb-1'><b>Supervisor:</b> ${activity.supervisorName || '-'}<br><b>Email:</b> ${activity.supervisorEmail || '-'}</div>
+                <div class='text-xs text-gray-500'>Posted by ${post.author || 'Anonymous'}</div>
+              </div>
+            `;
+            marker.bindPopup(content);
+            markers.push(marker);
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      map = L.map('map').setView([37.0902, -95.7129], 4); // Center of USA
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      fetchAndPlotActivities();
+    });
   </script>
 </body>
 </html>
+
+

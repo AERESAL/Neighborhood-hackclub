@@ -159,7 +159,7 @@
       </div>
     </div>
   </main>
-  <footer class="flex items-center justify-between bg-white shadow-md px-4 py-3 w-full z-50 fixed bottom-0 left-0" style="height:64px;">
+  <footer id="mobileFooterBar" class="flex items-center justify-between shadow-md px-4 py-3 w-full z-50 fixed bottom-0 left-0" style="height:64px;background: var(--accent, #2563eb);">
     <a href="community.mobile.html" aria-label="Community" class="flex items-center justify-center w-10 h-10 ml-4">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" class="themed-icon" aria-hidden="true">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
@@ -171,7 +171,7 @@
       </svg>
     </a>
     <div class="relative flex items-center gap-2 ml-auto mr-4">
-      <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="toggleMenu()">
+      <img src="https://via.placeholder.com/36" alt="Profile" class="w-9 h-9 rounded-full border border-gray-300 cursor-pointer" onclick="window.location.href='settings.mobile.html'">
       <div id="profileMenu" class="hidden absolute top-12 right-0 w-36 shadow-lg rounded-md z-50 border transition-colors">
         <ul class="py-2 text-sm" id="profileMenuList">
           <li><a href="#" class="block px-4 py-2">Profile</a></li>
@@ -383,4 +383,5 @@
   </script>
 </body>
 </html>
+
 

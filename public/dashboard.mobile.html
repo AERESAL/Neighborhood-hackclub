@@ -245,6 +245,12 @@
   <script src="dashboard-theme.js"></script>
   <script src="dashboard-core.js"></script>
   <script src="dashboard-activities.js"></script>
+  <script>
+    // Set up API_URL for dashboard-leaderboard.js before it loads
+    window.API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+      ? "http://localhost:3000"
+      : "https://neighborhood-liard.vercel.app";
+  </script>
   <script src="dashboard-leaderboard.js"></script>
   <script src="dashboard-ui.js"></script>
   <script type="module" src="app.js"></script>
@@ -485,12 +491,64 @@
         addActivityError.classList.remove('hidden');
       }
     });
-    // Ensure activities list loads on page load (for mobile)
+    // --- Leaderboard Logic (fetch and render) ---
+    async function fetchAndRenderLeaderboard(type = 'global') {
+      const leaderboardBody = document.getElementById('leaderboardBody');
+      const leaderboardStatus = document.getElementById('leaderboardStatus');
+      leaderboardBody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+      leaderboardStatus.textContent = '';
+      try {
+        const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+          ? "http://localhost:3000"
+          : "https://neighborhood-liard.vercel.app";
+        let res, data;
+        try {
+          res = await fetch(`${API_URL}/api/leaderboard?type=${type}`, { credentials: 'include' });
+          if (!res.ok) throw new Error('API_URL fetch failed');
+          data = await res.json();
+        } catch (err) {
+          // Fallback to relative path (for Vercel/Prod)
+          try {
+            res = await fetch(`/api/leaderboard?type=${type}`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Relative fetch failed');
+            data = await res.json();
+          } catch (err2) {
+            throw new Error('Failed to fetch leaderboard from both API_URL and relative path.');
+          }
+        }
+        if (!data.leaderboard || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
+          leaderboardBody.innerHTML = '<tr><td colspan="4">No leaderboard data.</td></tr>';
+          return;
+        }
+        leaderboardBody.innerHTML = data.leaderboard.map((entry, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${entry.username || 'Anonymous'}</td>
+            <td>${entry.approvedHours ? entry.approvedHours.toFixed(2) : '0.00'}</td>
+            <td>${entry.unapprovedHours ? entry.unapprovedHours.toFixed(2) : '0.00'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        leaderboardBody.innerHTML = '<tr><td colspan="4">Failed to load leaderboard.</td></tr>';
+        leaderboardStatus.textContent = err.message || 'Error loading leaderboard.';
+        console.error('Leaderboard fetch error:', err);
+      }
+    }
     document.addEventListener('DOMContentLoaded', function() {
+      fetchAndRenderLeaderboard('global');
+      // Ensure activities list loads on page load (for mobile)
       if (window.fetchAndRenderActivities) {
         window.fetchAndRenderActivities();
       }
     });
+    // Set up API_URL for dashboard-leaderboard.js
+    window.API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+      ? "http://localhost:3000"
+      : "https://neighborhood-liard.vercel.app";
+    // Patch fetchAndRenderLeaderboard to use the desktop logic
+    if (typeof fetchAndRenderLeaderboard === 'function') {
+      fetchAndRenderLeaderboard('global');
+    }
     // Ensure the VolunteerHub theme is applied
     if (window.loadAndApplyDashboardTheme) {
       window.loadAndApplyDashboardTheme();

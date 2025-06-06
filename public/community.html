@@ -71,11 +71,6 @@
         <!-- Main Content -->
         <main class="flex-1 p-6 ml-64 relative mt-[64px]">
             <div class="bg-white bg-opacity-80 rounded-md shadow-md p-8 flex flex-col items-center justify-center" style="max-width:1000px;width:90vw;margin:0 auto;">
-              <!-- Tabs -->
-              <div class="w-full flex justify-center mb-6">
-                <button class="tab-btn px-6 py-2 rounded-t-lg font-semibold focus:outline-none" id="communityTab">Community</button>
-                <button class="tab-btn px-6 py-2 rounded-t-lg font-semibold focus:outline-none" id="friendsTab">Friends</button>
-              </div>
               <!-- Community Section -->
               <div id="communitySection">
                 <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">Community</h2>
@@ -513,34 +508,7 @@ window.addEventListener('DOMContentLoaded', loadAndApplyCommunityTheme);
       }
     })();
 
-    // Tab switching logic
-const communityTab = document.getElementById('communityTab');
-const friendsTab = document.getElementById('friendsTab');
-const communitySection = document.getElementById('communitySection');
-const friendsSection = document.getElementById('friendsSection');
-
-function setActiveTab(tab) {
-  if (tab === 'community') {
-    communityTab.classList.add('bg-blue-600', 'text-white');
-    communityTab.disabled = true;
-    friendsTab.classList.remove('bg-blue-600', 'text-white');
-    friendsTab.disabled = false;
-    communitySection.style.display = '';
-    friendsSection.style.display = 'none';
-  } else {
-    friendsTab.classList.add('bg-blue-600', 'text-white');
-    friendsTab.disabled = true;
-    communityTab.classList.remove('bg-blue-600', 'text-white');
-    communityTab.disabled = false;
-    communitySection.style.display = 'none';
-    friendsSection.style.display = '';
-  }
-}
-communityTab.addEventListener('click', () => setActiveTab('community'));
-friendsTab.addEventListener('click', () => setActiveTab('friends'));
-setActiveTab('community');
-
-// Add Activity Post Button and Modal
+    // Add Activity Post Button and Modal
 (function addActivityPostFeature() {
   const addActivityPostBtn = document.createElement('button');
   addActivityPostBtn.textContent = 'Create Activity Post';

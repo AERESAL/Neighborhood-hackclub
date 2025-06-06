@@ -213,9 +213,10 @@
         <aside class="w-64 h-[100vh] bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md flex flex-col justify-between fixed pt-24">
             <nav class="mt-6 flex-1">
                 <ul class="space-y-2">
-                    <li><a href="dashboard.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Dashboard</a></li>
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Activities</a></li>
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Leaderboard</a></li>
+                    <li><a href="#" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">My Hours</a></li>
                     <li><a href="community.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Community</a></li>
-                    <li><a href="find-activities.html" class="block px-6 py-3 text-gray-700 hover:bg-gray-200">Find Activities</a></li>
                 </ul>
             </nav>
 
@@ -247,7 +248,6 @@
                 <button id="editButton" class="absolute top-4 right-4 p-2 rounded-full transition-colors" title="Edit Widgets" style="background: var(--accent, #2563eb);">
                   <svg id="editIcon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"/></svg>
                 </button>
-                <button id="addWidgetButton" class="absolute left-1/2 -translate-x-1/2 top-16 p-2 rounded-full transition-colors hidden z-10" style="background: var(--color2, #22d3ee); color: #fff; min-width:120px;">Add Widget</button>
                 <h1 id="greeting" class="text-3xl font-bold"></h1>
                 <p id="currentDate" class="text-lg mt-2"></p>
             </div>
@@ -287,17 +287,7 @@
 </div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget4">
   <div class="corner-br"></div>
-  <div class="text-lg font-semibold mb-1">Leaderboard</div>
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 text-xs">
-      <thead>
-        <tr>
-          <th>Rank</th><th>Volunteer</th><th>Approved</th><th>Unapproved</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardWidgetBody"><tr><td colspan="4">Loading...</td></tr></tbody>
-    </table>
-  </div>
+  Widget 4
 </div>
         </div>
 
@@ -367,6 +357,7 @@
                         <tr><td colspan="4" class="text-center text-gray-400 py-4">Loading...</td></tr>
                     </tbody>
                 </table>
+                <div class="text-xs text-gray-400 mt-1 text-right pr-2">based on approved hours</div>
             </div>
         </section>
         <!-- End Leaderboard Section -->
@@ -382,14 +373,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
-    // API URL logic for widgets and leaderboard widget
-const API_URL_LOCAL = "http://localhost:3000";
-const API_URL_PROD = "https://neighborhood-liard.vercel.app";
-window.API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
-  ? API_URL_LOCAL
-  : API_URL_PROD;
-
-// Mobile redirect logic
+    // Mobile redirect logic
     (function() {
       var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       var path = window.location.pathname;
@@ -403,84 +387,9 @@ window.API_URL = (window.location.hostname === "127.0.0.1" || window.location.ho
     })();
     </script>
     <script>
-const editButton = document.getElementById('editButton');
-const addWidgetButton = document.getElementById('addWidgetButton');
-let editingWidgets = false;
-
-editButton.addEventListener('click', function() {
-  editingWidgets = !editingWidgets;
-  if (editingWidgets) {
-    addWidgetButton.classList.remove('hidden');
-    // Scroll to make sure the button is visible
-    addWidgetButton.scrollIntoView({behavior: 'smooth', block: 'center'});
-  } else {
-    addWidgetButton.classList.add('hidden');
-  }
-});
-
-// Ensure the button is always above the greeting container visually
-addWidgetButton.style.zIndex = 20;
-
-// Widget Library
-const widgetLibrary = [
-  {
-    id: 'widget5',
-    title: 'Sample Widget',
-    content: `<div class="corner-br"></div><div class="text-lg font-semibold mb-1">Sample Widget</div><div>Custom content here</div>`
-  },
-  // Add more widget definitions here as needed
-];
-
-addWidgetButton.addEventListener('click', function() {
-  // Show a simple prompt to select a widget from the library
-  const widgetTitles = widgetLibrary.map(w => w.title).join('\n');
-  const choice = prompt('Add Widget:\n' + widgetTitles + '\nEnter widget name exactly as shown:');
-  const widget = widgetLibrary.find(w => w.title === choice);
-  if (widget) {
-    const container = document.getElementById('container');
-    const div = document.createElement('div');
-    div.className = 'widget bg-black bg-opacity-25 text-white';
-    div.id = widget.id;
-    div.innerHTML = widget.content;
-    container.appendChild(div);
-  } else if (choice) {
-    alert('Widget not found in library.');
-  }
-});
-
-// Leaderboard widget population logic
-function renderLeaderboardWidget() {
-  const tbody = document.getElementById('leaderboardWidgetBody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
-  let url = (window.API_URL ? window.API_URL : 'http://localhost:3000') + '/leaderboard';
-  fetch(url, { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => {
-      const leaderboard = data.leaderboard || data || [];
-      if (window.renderLeaderboardTable) {
-        window.renderLeaderboardTable(tbody, leaderboard);
-      } else {
-        // fallback rendering
-        if (!leaderboard.length) {
-          tbody.innerHTML = '<tr><td colspan="4">No data</td></tr>';
-          return;
-        }
-        tbody.innerHTML = leaderboard.map((row, i) =>
-          `<tr><td>${i+1}</td><td>${row.displayName || row.name || row.username || ''}</td><td>${row.approvedHours ?? row.approved ?? ''}</td><td>${row.unapprovedHours ?? row.unapproved ?? ''}</td></tr>`
-        ).join('');
-      }
-    })
-    .catch(() => {
-      tbody.innerHTML = '<tr><td colspan="4">Error loading leaderboard</td></tr>';
-    });
-}
-
-if (document.getElementById('leaderboardWidgetBody')) {
-  renderLeaderboardWidget();
-}
+// Remove all JS that forcibly sets fill/stroke/color on sidebar SVGs
+// Fix: Remove applyThemedIcons and all direct fill/color setting for .themed-icon SVGs
+// Sidebar SVGs should only use CSS for color, and SVGs must use fill="currentColor"
     </script>
 </body>
 </html>
-
-

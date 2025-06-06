@@ -131,11 +131,9 @@
   <main class="flex-1 p-2 relative z-0" style="padding-top:60px;margin-bottom:64px !important;">
     <div class="container">
       <h2 class="text-xl font-bold text-gray-800 mb-3">Community</h2>
-      <!-- Tabs -->
-      <div class="flex mb-4">
-        <button id="communityTab" class="flex-1 py-2 font-semibold rounded-l-lg border border-gray-300 bg-white text-gray-700 focus:outline-none">Community</button>
-        <button id="friendsTab" class="flex-1 py-2 font-semibold rounded-r-lg border border-gray-300 bg-gray-100 text-gray-500 focus:outline-none">Friends</button>
-      </div>
+      <!-- Create Activity Post Button (mobile) -->
+      <button id="addActivityPostBtn" class="accent-btn w-full mb-2">Create Activity Post</button>
+      <!-- Activity Post Modal (injected dynamically) -->
       <!-- Tab Content -->
       <div id="communityTabContent">
         <!-- Community Posts Section -->
@@ -146,16 +144,6 @@
         </form>
         <div id="communityFeed" class="mt-4"></div>
         <div id="communityStatus" class="mb-2"></div>
-      </div>
-      <div id="friendsTabContent" style="display:none;">
-        <!-- Friends Add/Search Section -->
-        <form id="addFriendForm" class="mb-4 flex gap-2">
-          <input type="text" id="friendSearchInput" class="border rounded px-2 py-1 flex-1" placeholder="Search username..." autocomplete="off">
-          <button type="submit" class="accent-btn">Add</button>
-        </form>
-        <div id="friendSearchResults" class="mb-2"></div>
-        <ul class="space-y-3 mb-4" id="friendsList"></ul>
-        <div id="friendsStatus" class="mb-2"></div>
       </div>
     </div>
   </main>
@@ -212,36 +200,25 @@
     }
     // Tabs logic
     const communityTab = document.getElementById('communityTab');
-    const friendsTab = document.getElementById('friendsTab');
     const communityTabContent = document.getElementById('communityTabContent');
-    const friendsTabContent = document.getElementById('friendsTabContent');
-    if (communityTab && friendsTab && communityTabContent && friendsTabContent) {
+    if (communityTab && communityTabContent) {
       communityTab.addEventListener('click', function() {
         communityTab.classList.add('bg-white', 'text-gray-700');
         communityTab.classList.remove('bg-gray-100', 'text-gray-500');
-        friendsTab.classList.add('bg-gray-100', 'text-gray-500');
-        friendsTab.classList.remove('bg-white', 'text-gray-700');
         communityTabContent.style.display = '';
-        friendsTabContent.style.display = 'none';
-      });
-      friendsTab.addEventListener('click', function() {
-        friendsTab.classList.add('bg-white', 'text-gray-700');
-        friendsTab.classList.remove('bg-gray-100', 'text-gray-500');
-        communityTab.classList.add('bg-gray-100', 'text-gray-500');
-        communityTab.classList.remove('bg-white', 'text-gray-700');
-        communityTabContent.style.display = 'none';
-        friendsTabContent.style.display = '';
       });
     }
 
     // --- Community Posts Logic (reuse from community.html) ---
-    const API_URL = '';
+    const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+      ? "http://localhost:3000"
+      : "https://neighborhood-liard.vercel.app";
     const currentUser = localStorage.getItem('username') || '';
     async function fetchAndRenderPosts() {
       const postsList = document.getElementById('communityFeed');
       postsList.innerHTML = '<div class="text-gray-400">Loading posts...</div>';
       try {
-        const res = await fetch(`/api/community-posts`);
+        const res = await fetch(`${API_URL}/api/community-posts`);
         if (!res.ok) throw new Error('Failed to fetch posts');
         const data = await res.json();
         postsList.innerHTML = '';
@@ -258,14 +235,66 @@
           if (imageUrl && imageUrl.startsWith('/uploads/')) {
             imageUrl = `${imageUrl}`;
           }
-          div.innerHTML = `
-            <div class="font-bold text-lg text-gray-700">${post.author || 'Anonymous'}</div>
-            <div class="text-gray-600 mt-1">${post.content}</div>
-            ${imageUrl ? `<img src="${imageUrl}" alt="Post image" class="mt-2 max-h-60 rounded shadow" style="max-width:100%">` : ''}
-            <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
-            ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
-          `;
+          // Activity post rendering with join button
+          if (post.isActivity && post.activityData) {
+            let userMsg = '';
+            if (post.content) {
+              const lines = post.content.split('\n');
+              if (lines.length > 1) {
+                userMsg = lines[0].trim();
+              } else if (!post.content.startsWith('Activity:')) {
+                userMsg = post.content.trim();
+              }
+            }
+            const a = post.activityData;
+            div.innerHTML = `
+              <div class="font-bold text-lg text-blue-900 tracking-wide">${a.name || 'Untitled Activity'}</div>
+              ${userMsg ? `<div class='text-gray-700 mb-1'>${userMsg}</div>` : ''}
+              <div class="text-sm text-gray-600 flex flex-wrap gap-2 items-center">
+                <span><svg class="inline w-4 h-4 mr-1 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg> ${a.start_time || ''} - ${a.end_time || ''}</span>
+                <span><svg class="inline w-4 h-4 mr-1 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 12.414a2 2 0 00-2.828 0l-4.243 4.243"/></svg> ${a.location || a.place || ''}</span>
+              </div>
+              <div class="text-xs text-gray-500 mt-1">Supervisor: ${a.supervisorName || ''} (${a.supervisorEmail || ''})</div>
+              <div class="flex justify-end mt-2">
+                <button class="join-activity-btn px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold shadow transition" data-id="${post.id}">Join Activity</button>
+              </div>
+              <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
+              ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
+            `;
+          } else {
+            div.innerHTML = `
+              <div class="font-bold text-lg text-gray-700">${post.author || 'Anonymous'}</div>
+              <div class="text-gray-600 mt-1">${post.content}</div>
+              ${imageUrl ? `<img src="${imageUrl}" alt="Post image" class="mt-2 max-h-60 rounded shadow" style="max-width:100%">` : ''}
+              <div class="text-xs text-gray-400 mt-2">${new Date(post.createdAt).toLocaleString()}</div>
+              ${canDelete ? `<button class="delete-post-btn mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs" data-id="${post.id}">Delete</button>` : ''}
+            `;
+          }
           postsList.appendChild(div);
+        });
+        // Join Activity button logic
+        document.querySelectorAll('.join-activity-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const postId = this.getAttribute('data-id');
+            const post = data.posts.find(p => p.id === postId);
+            if (!post || !post.activityData) return alert('No activity data found for this post.');
+            const token = localStorage.getItem('token');
+            if (!token) return alert('You must be logged in to join an activity.');
+            try {
+              const res = await fetch(`${API_URL}/activities`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(post.activityData)
+              });
+              if (!res.ok) throw new Error('Failed to join activity');
+              alert('Activity added to your activities!');
+            } catch (err) {
+              alert('Failed to join activity.');
+            }
+          });
         });
         document.querySelectorAll('.delete-post-btn').forEach(btn => {
           btn.addEventListener('click', async function() {
@@ -380,6 +409,194 @@
         navigator.serviceWorker.register('service-worker.js');
       });
     }
+  </script>
+  <script>
+    // --- Add Activity Post Button and Modal Logic (matches desktop) ---
+    (function addActivityPostFeature() {
+      const addActivityPostBtn = document.getElementById('addActivityPostBtn');
+      if (!addActivityPostBtn) return;
+      addActivityPostBtn.addEventListener('click', function() {
+        const formHtml = `
+      <div id="activityPostModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div class="bg-white rounded-lg shadow-lg p-4 relative w-full max-w-sm mx-auto">
+          <button id="closeActivityPostModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+          <form id="activityPostForm" class="space-y-3 mb-4">
+            <textarea id="activityPostUserText" class="border rounded px-3 py-2 w-full" rows="2" placeholder="Add a message to your activity post (optional)"></textarea>
+            <div class="flex flex-col gap-2">
+              <input type="text" id="activityPostTitle" placeholder="Title" class="border rounded px-3 py-2 w-full" required>
+              <div style="position:relative;">
+                <input type="text" id="activityPostAddress" placeholder="Address" class="border rounded px-3 py-2 w-full" autocomplete="off" required>
+                <div id="addressSuggestions" class="absolute z-10 bg-white border rounded shadow w-full" style="display:none;"></div>
+              </div>
+            </div>
+            <div id="addressMapPreview" style="height:160px;display:none;" class="mb-2 rounded overflow-hidden"></div>
+            <div class="flex flex-col gap-2">
+              <input type="date" id="activityPostDate" class="border rounded px-3 py-2 w-full" required>
+              <input type="time" id="activityPostStartTime" class="border rounded px-3 py-2 w-full" required>
+              <input type="time" id="activityPostEndTime" class="border rounded px-3 py-2 w-full" required>
+            </div>
+            <div class="flex flex-col gap-2">
+              <input type="text" id="activityPostSupervisorName" placeholder="Supervisor Name" class="border rounded px-3 py-2 w-full" required>
+              <input type="email" id="activityPostSupervisorEmail" placeholder="Supervisor Email" class="border rounded px-3 py-2 w-full" required>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded flex-1">Post Activity</button>
+              <button type="button" id="cancelActivityPost" class="px-4 py-2 bg-gray-400 text-white rounded flex-1">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>`;
+        document.body.insertAdjacentHTML('beforeend', formHtml);
+        // Inject Leaflet CSS/JS if not present
+        if (!document.getElementById('leafletCSS')) {
+          const lcss = document.createElement('link');
+          lcss.rel = 'stylesheet';
+          lcss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          lcss.id = 'leafletCSS';
+          document.head.appendChild(lcss);
+        }
+        if (!document.getElementById('leafletJS')) {
+          const ljs = document.createElement('script');
+          ljs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          ljs.id = 'leafletJS';
+          document.body.appendChild(ljs);
+        }
+        const modal = document.getElementById('activityPostModal');
+        const closeModal = document.getElementById('closeActivityPostModal');
+        const cancelBtn = document.getElementById('cancelActivityPost');
+        closeModal.onclick = cancelBtn.onclick = function() {
+          modal.remove();
+        };
+        // --- Mapbox Address Autocomplete and Map Preview Logic ---
+        let MAPBOX_API_KEY = null;
+        let selectedAddress = null, selectedLatLng = null, map = null, marker = null;
+        const addressInput = document.getElementById('activityPostAddress');
+        const suggestionsDiv = document.getElementById('addressSuggestions');
+        const mapDiv = document.getElementById('addressMapPreview');
+        let addressDebounceTimer = null;
+        const addressCache = {};
+        addressInput.disabled = true;
+        fetch('/api/mapbox-key').then(r => r.json()).then(data => {
+          MAPBOX_API_KEY = data.key;
+          addressInput.disabled = false;
+        }).catch(() => {
+          suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Failed to load Mapbox API key.</div>';
+          suggestionsDiv.style.display = 'block';
+        });
+        addressInput.addEventListener('input', function() {
+          const q = addressInput.value.trim();
+          if (addressDebounceTimer) clearTimeout(addressDebounceTimer);
+          if (!q || q.length < 3) { suggestionsDiv.style.display = 'none'; return; }
+          addressDebounceTimer = setTimeout(async () => {
+            suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-gray-500">Searching...</div>';
+            suggestionsDiv.style.display = 'block';
+            if (addressCache[q]) {
+              renderAddressSuggestions(addressCache[q]);
+              return;
+            }
+            if (!MAPBOX_API_KEY) {
+              suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Mapbox key not loaded.</div>';
+              suggestionsDiv.style.display = 'block';
+              return;
+            }
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_API_KEY}&autocomplete=true&limit=5`;
+            try {
+              const res = await fetch(url);
+              const data = await res.json();
+              addressCache[q] = data.features || [];
+              renderAddressSuggestions(data.features || []);
+            } catch {
+              suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Error searching for addresses.</div>';
+              suggestionsDiv.style.display = 'block';
+            }
+          }, 400);
+        });
+        function renderAddressSuggestions(features) {
+          if (!features.length) { suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-gray-500">No results found.</div>'; suggestionsDiv.style.display = 'block'; return; }
+          suggestionsDiv.innerHTML = features.map(item => {
+            const label = item.place_name || item.text || 'Unknown';
+            return `<div class='px-2 py-1 hover:bg-blue-100 cursor-pointer' data-lat='${item.center[1]}' data-lon='${item.center[0]}' data-display='${label.replace(/'/g, "&apos;")}' >${label}</div>`;
+          }).join('');
+          suggestionsDiv.style.display = 'block';
+          Array.from(suggestionsDiv.children).forEach(child => {
+            child.onclick = function() {
+              addressInput.value = this.getAttribute('data-display');
+              selectedAddress = this.getAttribute('data-display');
+              selectedLatLng = [parseFloat(this.getAttribute('data-lat')), parseFloat(this.getAttribute('data-lon'))];
+              suggestionsDiv.style.display = 'none';
+              showMapPreview(selectedLatLng, selectedAddress);
+            };
+          });
+        }
+        addressInput.addEventListener('blur', function() {
+          setTimeout(() => { suggestionsDiv.style.display = 'none'; }, 150);
+          setTimeout(() => { mapDiv.style.display = 'none'; }, 200);
+        });
+        addressInput.addEventListener('focus', function() {
+          if (selectedLatLng) mapDiv.style.display = 'block';
+        });
+        function showMapPreview(latlng, label) {
+          mapDiv.style.display = 'block';
+          setTimeout(() => {
+            if (!window.L) return;
+            if (!map) {
+              map = L.map(mapDiv).setView(latlng, 15);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+              }).addTo(map);
+            } else {
+              map.setView(latlng, 15);
+            }
+            if (marker) marker.remove();
+            marker = L.marker(latlng).addTo(map).bindPopup(label).openPopup();
+          }, 100);
+        }
+        if (!window.L) {
+          const checkLeaflet = setInterval(() => {
+            if (window.L) {
+              clearInterval(checkLeaflet);
+            }
+          }, 50);
+        }
+        document.getElementById('activityPostForm').onsubmit = async function(e) {
+          e.preventDefault();
+          const author = localStorage.getItem('username') || 'Anonymous';
+          const userText = document.getElementById('activityPostUserText').value.trim();
+          const activityData = {
+            name: document.getElementById('activityPostTitle').value.trim(),
+            date: document.getElementById('activityPostDate').value,
+            start_time: document.getElementById('activityPostStartTime').value,
+            end_time: document.getElementById('activityPostEndTime').value,
+            location: addressInput.value.trim(),
+            supervisorName: document.getElementById('activityPostSupervisorName').value.trim(),
+            supervisorEmail: document.getElementById('activityPostSupervisorEmail').value.trim(),
+            approved: false
+          };
+          if (!selectedLatLng) {
+            alert('Please select a valid address from the suggestions.');
+            return;
+          }
+          const formData = new FormData();
+          let content = userText ? userText + '\n' : '';
+          content += `Activity: ${activityData.name} @ ${activityData.location} on ${activityData.date}`;
+          formData.append('content', content);
+          formData.append('author', author);
+          formData.append('isActivity', 'true');
+          formData.append('activityData', JSON.stringify(activityData));
+          try {
+            const res = await fetch(`${API_URL}/api/community-posts`, {
+              method: 'POST',
+              body: formData
+            });
+            if (!res.ok) throw new Error('Failed to post activity');
+            modal.remove();
+            if (window.fetchAndRenderPosts) window.fetchAndRenderPosts();
+          } catch (err) {
+            alert('Failed to post activity.');
+          }
+        };
+      });
+    })();
   </script>
 </body>
 </html>

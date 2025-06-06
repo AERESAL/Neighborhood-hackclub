@@ -557,8 +557,12 @@ setActiveTab('community');
             <textarea id="activityPostUserText" class="border rounded px-3 py-2 w-full" rows="2" placeholder="Add a message to your activity post (optional)"></textarea>
             <div class="flex flex-wrap gap-4">
               <input type="text" id="activityPostTitle" placeholder="Title" class="border rounded px-3 py-2 flex-1" required>
-              <input type="text" id="activityPostPlace" placeholder="Place" class="border rounded px-3 py-2 flex-1" required>
+              <div style="position:relative;flex:1;">
+                <input type="text" id="activityPostAddress" placeholder="Address" class="border rounded px-3 py-2 w-full" autocomplete="off" required>
+                <div id="addressSuggestions" class="absolute z-10 bg-white border rounded shadow w-full" style="display:none;"></div>
+              </div>
             </div>
+            <div id="addressMapPreview" style="height:200px;display:none;" class="mb-2 rounded overflow-hidden"></div>
             <div class="flex flex-wrap gap-4">
               <input type="date" id="activityPostDate" class="border rounded px-3 py-2 flex-1" required>
               <input type="time" id="activityPostStartTime" class="border rounded px-3 py-2 flex-1" required>
@@ -576,12 +580,119 @@ setActiveTab('community');
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', formHtml);
+    // Inject Leaflet CSS/JS if not present
+    if (!document.getElementById('leafletCSS')) {
+      const lcss = document.createElement('link');
+      lcss.rel = 'stylesheet';
+      lcss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      lcss.id = 'leafletCSS';
+      document.head.appendChild(lcss);
+    }
+    if (!document.getElementById('leafletJS')) {
+      const ljs = document.createElement('script');
+      ljs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      ljs.id = 'leafletJS';
+      document.body.appendChild(ljs);
+    }
     const modal = document.getElementById('activityPostModal');
     const closeModal = document.getElementById('closeActivityPostModal');
     const cancelBtn = document.getElementById('cancelActivityPost');
     closeModal.onclick = cancelBtn.onclick = function() {
       modal.remove();
     };
+    // --- Mapbox Address Autocomplete and Map Preview Logic ---
+    let MAPBOX_API_KEY = null;
+    let selectedAddress = null, selectedLatLng = null, map = null, marker = null;
+    const addressInput = document.getElementById('activityPostAddress');
+    const suggestionsDiv = document.getElementById('addressSuggestions');
+    const mapDiv = document.getElementById('addressMapPreview');
+    let addressDebounceTimer = null;
+    const addressCache = {};
+    addressInput.disabled = true;
+    // Fetch Mapbox API key from backend
+    fetch('/api/mapbox-key').then(r => r.json()).then(data => {
+      MAPBOX_API_KEY = data.key;
+      addressInput.disabled = false;
+    }).catch(() => {
+      suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Failed to load Mapbox API key.</div>';
+      suggestionsDiv.style.display = 'block';
+    });
+    addressInput.addEventListener('input', function() {
+      const q = addressInput.value.trim();
+      if (addressDebounceTimer) clearTimeout(addressDebounceTimer);
+      if (!q || q.length < 3) { suggestionsDiv.style.display = 'none'; return; }
+      addressDebounceTimer = setTimeout(async () => {
+        suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-gray-500">Searching...</div>';
+        suggestionsDiv.style.display = 'block';
+        if (addressCache[q]) {
+          renderAddressSuggestions(addressCache[q]);
+          return;
+        }
+        if (!MAPBOX_API_KEY) {
+          suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Mapbox key not loaded.</div>';
+          suggestionsDiv.style.display = 'block';
+          return;
+        }
+        // Mapbox Geocoding API
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_API_KEY}&autocomplete=true&limit=5`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          addressCache[q] = data.features || [];
+          renderAddressSuggestions(data.features || []);
+        } catch {
+          suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-red-600">Error searching for addresses.</div>';
+          suggestionsDiv.style.display = 'block';
+        }
+      }, 400);
+    });
+    function renderAddressSuggestions(features) {
+      if (!features.length) { suggestionsDiv.innerHTML = '<div class="px-2 py-2 text-gray-500">No results found.</div>'; suggestionsDiv.style.display = 'block'; return; }
+      suggestionsDiv.innerHTML = features.map(item => {
+        const label = item.place_name || item.text || 'Unknown';
+        return `<div class='px-2 py-1 hover:bg-blue-100 cursor-pointer' data-lat='${item.center[1]}' data-lon='${item.center[0]}' data-display='${label.replace(/'/g, "&apos;")}' >${label}</div>`;
+      }).join('');
+      suggestionsDiv.style.display = 'block';
+      Array.from(suggestionsDiv.children).forEach(child => {
+        child.onclick = function() {
+          addressInput.value = this.getAttribute('data-display');
+          selectedAddress = this.getAttribute('data-display');
+          selectedLatLng = [parseFloat(this.getAttribute('data-lat')), parseFloat(this.getAttribute('data-lon'))];
+          suggestionsDiv.style.display = 'none';
+          showMapPreview(selectedLatLng, selectedAddress);
+        };
+      });
+    }
+    addressInput.addEventListener('blur', function() {
+      setTimeout(() => { suggestionsDiv.style.display = 'none'; }, 150);
+      setTimeout(() => { mapDiv.style.display = 'none'; }, 200);
+    });
+    addressInput.addEventListener('focus', function() {
+      if (selectedLatLng) mapDiv.style.display = 'block';
+    });
+    function showMapPreview(latlng, label) {
+      mapDiv.style.display = 'block';
+      setTimeout(() => {
+        if (!window.L) return;
+        if (!map) {
+          map = L.map(mapDiv).setView(latlng, 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+        } else {
+          map.setView(latlng, 15);
+        }
+        if (marker) marker.remove();
+        marker = L.marker(latlng).addTo(map).bindPopup(label).openPopup();
+      }, 100);
+    }
+    if (!window.L) {
+      const checkLeaflet = setInterval(() => {
+        if (window.L) {
+          clearInterval(checkLeaflet);
+        }
+      }, 50);
+    }
     document.getElementById('activityPostForm').onsubmit = async function(e) {
       e.preventDefault();
       const author = localStorage.getItem('username') || 'Anonymous';
@@ -591,11 +702,15 @@ setActiveTab('community');
         date: document.getElementById('activityPostDate').value,
         start_time: document.getElementById('activityPostStartTime').value,
         end_time: document.getElementById('activityPostEndTime').value,
-        location: document.getElementById('activityPostPlace').value.trim(),
+        location: addressInput.value.trim(),
         supervisorName: document.getElementById('activityPostSupervisorName').value.trim(),
         supervisorEmail: document.getElementById('activityPostSupervisorEmail').value.trim(),
         approved: false
       };
+      if (!selectedLatLng) {
+        alert('Please select a valid address from the suggestions.');
+        return;
+      }
       // Post to community as an activity
       const formData = new FormData();
       let content = userText ? userText + '\n' : '';
@@ -621,4 +736,3 @@ setActiveTab('community');
   </script>
 </body>
 </html>
-

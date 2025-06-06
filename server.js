@@ -779,7 +779,14 @@ app.get('/themes', async (req, res) => {
   }
 });
 
+// Expose Mapbox API key to frontend (read-only)
+app.get('/api/mapbox-key', (req, res) => {
+  res.json({ key: process.env.MAPBOX_API_KEY || '' });
+});
+
 // Start Server
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
 
 

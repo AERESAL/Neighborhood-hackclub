@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'settings.html';
     };
     document.getElementById('sidebarPrintBtn').onclick = function() {
-        document.getElementById('printActivitiesBtn').click();
+        window.location.href = 'print.html';
     };
     // Log Out button functionality
     const logoutBtn = document.querySelector('#profileMenu button');

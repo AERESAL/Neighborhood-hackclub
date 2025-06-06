@@ -56,11 +56,21 @@
     <main class="flex-1 p-6 ml-64 mt-[64px]">
       <div class="container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Find Activities</h2>
-        <div class="mb-4 text-gray-600">Map functionality coming soon.</div>
+        <div class="mb-4 text-gray-600">Explore activities on the map below.</div>
+        <div id="map" style="width:100%;height:500px;border-radius:12px;box-shadow:0 2px 8px #0002;"></div>
+        <!-- Activities List -->
+        <div id="activitiesListContainer" class="mt-8">
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">Current Activities</h3>
+          <ul id="activitiesList" class="space-y-3"></ul>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2 mt-8">Previous Activities</h3>
+          <ul id="previousActivitiesList" class="space-y-3"></ul>
+        </div>
       </div>
     </main>
   </div>
   <script src="dashboard-theme.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     if (window.loadAndApplyDashboardTheme) {
       window.loadAndApplyDashboardTheme();
@@ -69,6 +79,152 @@
         if (window.loadAndApplyDashboardTheme) window.loadAndApplyDashboardTheme();
       });
     }
+
+    const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:3000"
+      : "https://neighborhood-liard.vercel.app";
+
+    let map;
+    let markers = [];
+
+    async function fetchAndPlotActivities() {
+      try {
+        const res = await fetch(`${API_URL}/api/community-posts`);
+        const data = await res.json();
+        const activities = (data.posts || []).filter(p => p.isActivity && p.activityData && p.activityData.location);
+        // Render activities list below the map
+        renderActivitiesList(activities);
+        // Only plot current (upcoming/future) activities on the map
+        const now = new Date();
+        const currentActivities = activities.filter(post => {
+          const a = post.activityData;
+          let endDateTime = null;
+          if (a.date && a.end_time) {
+            endDateTime = new Date(a.date + 'T' + (a.end_time.length === 5 ? a.end_time+':00' : a.end_time));
+          } else if (a.date) {
+            endDateTime = new Date(a.date);
+          }
+          return !(endDateTime && endDateTime < now);
+        });
+        for (const post of currentActivities) {
+          const a = post.activityData;
+          geocodeAndPlaceMarker(a.location, a, post);
+        }
+      } catch (err) {
+        console.error('Failed to fetch activities', err);
+      }
+    }
+    // Render activities list below the map
+    function renderActivitiesList(activities) {
+      const list = document.getElementById('activitiesList');
+      const prevList = document.getElementById('previousActivitiesList');
+      if (!list || !prevList) return;
+      if (!activities.length) {
+        list.innerHTML = '<li class="text-gray-500">No activities found.</li>';
+        prevList.innerHTML = '';
+        return;
+      }
+      // Split activities into current and previous
+      const now = new Date();
+      const current = [], previous = [];
+      activities.forEach(post => {
+        const a = post.activityData;
+        // Parse end date/time
+        let endDateTime = null;
+        if (a.date && a.end_time) {
+          endDateTime = new Date(a.date + 'T' + (a.end_time.length === 5 ? a.end_time+':00' : a.end_time));
+        } else if (a.date) {
+          endDateTime = new Date(a.date);
+        }
+        if (endDateTime && endDateTime < now) {
+          previous.push(post);
+        } else {
+          current.push(post);
+        }
+      });
+      // Render current activities
+      list.innerHTML = current.length ? current.map(post => {
+        const a = post.activityData;
+        return `<li class="bg-white rounded shadow p-4 border border-blue-100">
+          <div class="font-bold text-lg text-blue-900">${a.name || 'Untitled Activity'}</div>
+          <div class="text-gray-700 mb-1"><b>Place:</b> ${a.location || '-'}</div>
+          <div class="text-gray-700 mb-1"><b>Date:</b> ${a.date || '-'} <b>Time:</b> ${a.start_time || '-'} - ${a.end_time || '-'}</div>
+          <div class="text-gray-700 mb-1"><b>Supervisor:</b> ${a.supervisorName || '-'} <b>Email:</b> <a href="mailto:${a.supervisorEmail}" class="text-blue-600 underline">${a.supervisorEmail || '-'}</a></div>
+          <div class="text-xs text-gray-500">Posted by ${post.author || 'Anonymous'}</div>
+          <div class="flex justify-end mt-2">
+            <button class="join-activity-btn px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold shadow transition" data-id="${post.id}">Join Activity</button>
+          </div>
+        </li>`;
+      }).join('') : '<li class="text-gray-500">No current activities.</li>';
+      // Render previous activities
+      prevList.innerHTML = previous.length ? previous.map(post => {
+        const a = post.activityData;
+        return `<li class="bg-gray-100 rounded shadow p-4 border border-gray-200 opacity-70">
+          <div class="font-bold text-lg text-gray-700">${a.name || 'Untitled Activity'}</div>
+          <div class="text-gray-700 mb-1"><b>Place:</b> ${a.location || '-'}</div>
+          <div class="text-gray-700 mb-1"><b>Date:</b> ${a.date || '-'} <b>Time:</b> ${a.start_time || '-'} - ${a.end_time || '-'}</div>
+          <div class="text-gray-700 mb-1"><b>Supervisor:</b> ${a.supervisorName || '-'} <b>Email:</b> <a href="mailto:${a.supervisorEmail}" class="text-blue-600 underline">${a.supervisorEmail || '-'}</a></div>
+          <div class="text-xs text-gray-500">Posted by ${post.author || 'Anonymous'}</div>
+        </li>`;
+      }).join('') : '<li class="text-gray-500">No previous activities.</li>';
+      // Attach join-activity handlers for current only
+      document.querySelectorAll('.join-activity-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const postId = this.getAttribute('data-id');
+          const post = current.find(p => p.id === postId);
+          if (!post || !post.activityData) return alert('No activity data found for this post.');
+          // Send POST to /activities endpoint
+          const token = localStorage.getItem('token');
+          if (!token) return alert('You must be logged in to join an activity.');
+          try {
+            const res = await fetch(`${API_URL}/activities`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(post.activityData)
+            });
+            if (!res.ok) throw new Error('Failed to join activity');
+            alert('Activity added to your activities!');
+          } catch (err) {
+            alert('Failed to join activity.');
+          }
+        });
+      });
+    }
+
+    // Use Nominatim for geocoding (OpenStreetMap)
+    function geocodeAndPlaceMarker(address, activity, post) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(res => res.json())
+        .then(results => {
+          if (results && results[0]) {
+            const lat = parseFloat(results[0].lat);
+            const lon = parseFloat(results[0].lon);
+            const marker = L.marker([lat, lon]).addTo(map);
+            const content = `
+              <div style='min-width:200px'>
+                <div class='font-bold text-lg mb-1'>${activity.name || 'Untitled Activity'}</div>
+                <div class='text-gray-700 mb-1'><b>Place:</b> ${activity.location}</div>
+                <div class='text-gray-700 mb-1'><b>Date:</b> ${activity.date || '-'}<br><b>Time:</b> ${activity.start_time || '-'} - ${activity.end_time || '-'}</div>
+                <div class='text-gray-700 mb-1'><b>Supervisor:</b> ${activity.supervisorName || '-'}<br><b>Email:</b> ${activity.supervisorEmail || '-'}</div>
+                <div class='text-xs text-gray-500'>Posted by ${post.author || 'Anonymous'}</div>
+              </div>
+            `;
+            marker.bindPopup(content);
+            markers.push(marker);
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      map = L.map('map').setView([37.0902, -95.7129], 4); // Center of USA
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      fetchAndPlotActivities();
+    });
   </script>
 </body>
 </html>

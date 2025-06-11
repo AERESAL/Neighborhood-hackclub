@@ -282,7 +282,12 @@
 </div>
             <div class="widget bg-black bg-opacity-25 text-white" id="widget4">
   <div class="corner-br"></div>
-  Widget 4
+  <div class="text-lg font-semibold mb-1">Leaderboard (Top 3)</div>
+  <div id="widgetLeaderboardStatus" class="text-xs text-gray-300 mb-2"></div>
+  <ol id="widgetLeaderboard" class="text-left text-base space-y-1 px-4">
+    <li class="text-gray-400">Loading...</li>
+  </ol>
+  <div class="text-xs text-gray-400 mt-2 text-right pr-2">based on approved hours</div>
 </div>
         </div>
 
@@ -379,6 +384,140 @@
         if (path.endsWith('/community.html')) window.location.replace('community.mobile.html');
         if (path.endsWith('/print.html')) window.location.replace('print.mobile.html');
       }
+    })();
+    </script>
+    <script>
+// --- Leaderboard Widget Logic ---
+(function() {
+  async function fetchWidgetLeaderboard() {
+    const status = document.getElementById('widgetLeaderboardStatus');
+    const list = document.getElementById('widgetLeaderboard');
+    status.textContent = '';
+    list.innerHTML = '<li class="text-gray-400">Loading...</li>';
+    try {
+      const API_URL = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost")
+        ? "http://localhost:3000"
+        : "https://neighborhood-liard.vercel.app";
+      let res = await fetch(`${API_URL}/leaderboard`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch leaderboard');
+      const data = await res.json();
+      const leaderboard = (data.leaderboard || []).slice(0, 3);
+      if (!leaderboard.length) {
+        list.innerHTML = '<li class="text-gray-400">No data.</li>';
+        return;
+      }
+      list.innerHTML = leaderboard.map((entry, idx) =>
+        `<li><span class="font-bold">#${idx+1}</span> ${entry.displayName || entry.username || entry.name || 'Anonymous'}<br><span class="text-xs text-green-300">${entry.approvedHours ? entry.approvedHours.toFixed(2) : '0.00'} hrs</span></li>`
+      ).join('');
+    } catch (err) {
+      status.textContent = 'Failed to load leaderboard.';
+      list.innerHTML = '<li class="text-red-400">Error loading leaderboard.</li>';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', fetchWidgetLeaderboard);
+})();
+    </script>
+    <script>
+    // --- Widget Position Save/Restore Logic ---
+    (function() {
+      // Helper to set a cookie
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + (days*24*60*60*1000));
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (encodeURIComponent(value) || "")  + expires + "; path=/";
+      }
+      // Helper to get a cookie
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+          let c = ca[i];
+          while (c.charAt(0)==' ') c = c.substring(1,c.length);
+          if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length,c.length));
+        }
+        return null;
+      }
+
+      // Save widget positions to cookie
+      function saveWidgetPositions() {
+        const widgets = ['widget1','widget2','widget3','widget4'];
+        const pos = {};
+        widgets.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            pos[id] = {
+              top: el.style.top || "",
+              left: el.style.left || "",
+              right: el.style.right || "",
+              bottom: el.style.bottom || "",
+              width: el.style.width || "",
+              height: el.style.height || ""
+            };
+          }
+        });
+        setCookie('widgetPositions', JSON.stringify(pos), 365);
+      }
+
+      // Restore widget positions from cookie
+      function restoreWidgetPositions() {
+        const data = getCookie('widgetPositions');
+        if (!data) return;
+        let pos;
+        try { pos = JSON.parse(data); } catch { return; }
+        Object.entries(pos).forEach(([id, style]) => {
+          const el = document.getElementById(id);
+          if (el && style) {
+            ['top','left','right','bottom','width','height'].forEach(k => {
+              if (style[k]) el.style[k] = style[k];
+            });
+          }
+        });
+      }
+
+      // Hook into widget drag/resize logic
+      document.addEventListener('DOMContentLoaded', function() {
+        restoreWidgetPositions();
+
+        // Listen for end of drag/resize to save positions
+        // Assumes widgets are made draggable/resizable in .editing mode
+        const container = document.getElementById('container');
+        if (!container) return;
+        let isEditing = false;
+        let observer = null;
+
+        // Listen for entering/exiting editing mode
+        const editBtn = document.getElementById('editButton');
+        if (editBtn) {
+          editBtn.addEventListener('click', function() {
+            setTimeout(() => {
+              isEditing = document.body.classList.contains('editing') || container.classList.contains('editing');
+              if (isEditing && !observer) {
+                // Observe style changes to widgets
+                observer = new MutationObserver(() => saveWidgetPositions());
+                ['widget1','widget2','widget3','widget4'].forEach(id => {
+                  const el = document.getElementById(id);
+                  if (el) observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+                });
+              } else if (!isEditing && observer) {
+                observer.disconnect();
+                observer = null;
+                saveWidgetPositions();
+              }
+            }, 100); // Wait for editing mode toggle
+          });
+        }
+
+        // Also save on mouseup/touchend after drag/resize
+        ['mouseup','touchend'].forEach(evt =>
+          container.addEventListener(evt, () => {
+            if (isEditing) saveWidgetPositions();
+          }, true)
+        );
+      });
     })();
     </script>
 </body>

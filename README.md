@@ -22,4 +22,6 @@ Sidebar on the left side to navigate between the following:
 - leaderboard
 - Print/ Export (Icon on bottom left)
 - Settings (Icon on botton left)
-- Top right will have profile pop out
+
+
+https://img.shields.io/badge/made%20for%20neighborhood-bf8f73?style=for-the-badge&logo=hackclub&logoColor=ffffff

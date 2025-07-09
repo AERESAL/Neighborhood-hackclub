@@ -9,6 +9,10 @@ const jwt = require("jsonwebtoken");
 const multer = require('multer');
 const { getStorage } = require('firebase-admin/storage');
 require('dotenv').config();
+const { setupMobileSupport } = require('./mobile-backend-setup');
+
+// After initializing Firebase and before your existing routes:
+setupMobileSupport(app, admin, db);
 
 // Load service account from environment variable or fallback to serviceAccountKey.json
 let serviceAccount;

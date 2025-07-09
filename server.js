@@ -46,6 +46,7 @@ app.use(cors({
     "http://localhost:5500",
     "https://neighborhood-liard.vercel.app",
     "https://neighborhood-1bs9w1ohe-aeresals-projects.vercel.app"
+    "https://volunteerhub.saitrseelam.com"
   ],
   credentials: true,
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"], // Add DELETE and PUT
